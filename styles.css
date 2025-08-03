@@ -1,0 +1,269 @@
+/* Custom Styles for TinyImg - Minimal White Theme */
+
+:root {
+    --primary-color: #6c757d;
+    --success-color: #495057;
+    --border-color: #dee2e6;
+    --text-muted: #6c757d;
+    --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --border-radius: 8px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #ffffff;
+    color: #212529;
+    line-height: 1.5;
+}
+
+/* Upload Area Styles - Clean White */
+.upload-area {
+    background: #ffffff;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    color: var(--text-muted);
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.upload-area:hover {
+    border-color: var(--primary-color);
+    background-color: #f8f9fa;
+}
+
+.upload-area.drag-over {
+    border-color: var(--primary-color);
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+}
+
+.upload-content {
+    width: 100%;
+}
+
+.upload-area p {
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.upload-area small {
+    display: block;
+    margin-bottom: 1.5rem;
+    color: var(--text-muted);
+}
+
+/* Progress Container */
+.progress-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.progress {
+    height: 6px;
+    border-radius: 3px;
+    background-color: #f8f9fa;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+/* Main Copy Button - Clean Green */
+.copy-main-btn {
+    background: var(--success-color);
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.copy-main-btn:hover {
+    background: #343a40;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(73, 80, 87, 0.2);
+}
+
+.copy-main-btn:active {
+    transform: translateY(0);
+}
+
+/* Simple Results Area */
+.results-area .card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    transition: box-shadow 0.2s ease;
+}
+
+.results-area .card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.results-area img {
+    border-radius: 4px;
+}
+
+/* Settings Panel - Clean */
+.settings-panel .card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: #ffffff;
+    box-shadow: var(--shadow-light);
+}
+
+.settings-panel .form-label {
+    font-weight: 500;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.settings-panel .form-range::-webkit-slider-thumb {
+    background: var(--primary-color);
+    border: none;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    transition: background-color 0.2s ease;
+}
+
+.settings-panel .form-range::-webkit-slider-thumb:hover {
+    background: #495057;
+}
+
+.settings-panel .form-control,
+.settings-panel .form-select {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.settings-panel .form-control:focus,
+.settings-panel .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.15);
+}
+
+/* Button Styles - Clean */
+.btn {
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn i {
+    margin-right: 0.4rem;
+}
+
+/* Toast Styles - Clean */
+.toast {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    max-width: 350px;
+}
+
+.toast-header {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Badge Styles - Simple */
+.badge {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    margin: 0.1rem;
+    font-weight: 500;
+}
+
+/* Toast Styles - Clean */
+.toast {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    max-width: 350px;
+}
+
+.toast-header {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.toast-header .btn-close {
+    margin: 0;
+}
+
+/* Footer Styles - Simplified */
+footer {
+    margin-top: 2rem;
+}
+
+/* Responsive Design - Simplified */
+@media (max-width: 768px) {
+    .upload-area {
+        margin: 1rem 0;
+        padding: 1.5rem 1rem;
+        min-height: 150px;
+    }
+    
+    .copy-main-btn {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .results-area .col-md-6 {
+        margin-bottom: 1rem;
+    }
+    
+    .settings-panel .col-md-4 {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Animation Classes - Simplified */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease forwards;
+}
+
+/* Custom Scrollbar - Minimal */
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
