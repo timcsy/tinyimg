@@ -10,16 +10,16 @@ description: "003 註解工具 的任務清單"
 
 ## Phase 1: Foundational（core）
 
-- [ ] T001 [P] 在 `packages/core/test/annotations.test.ts` 寫測試：`pixelate` 在區域內每個方塊都只剩單一顏色、區域外像素完全不變、不修改輸入、區域被夾在影像範圍內；`mosaicBlock` 的值為 max(12, ceil(短邊 / 20))；`renderAnnotations` 對每種註解發出預期的繪製指令（用假的 Ctx2D 記錄），且會略過 mosaic；`applyAnnotations` 先 pixelate 再呼叫 draw，沒有向量註解時不呼叫 draw
-- [ ] T002 實作 `packages/core/src/annotations.ts`，讓 T001 通過，並從 `index.ts` 匯出；完成後做一次注入錯誤檢查（讓 pixelate 漏掉最後一個方塊），確認測試會失敗
-- [ ] T003 在 `packages/core/test/worker.test.ts` 加測試：帶有 annotations 時，結果不是 original-fits；drawVectors 這個 dep 會收到向量註解；馬賽克在 applyEdit 之前執行（用像素驗證）
-- [ ] T004 修改 `packages/core/src/worker.ts`、`client.ts`（`compress` 帶 annotations）、`codecs/browser.ts`（`drawVectors`：用 OffscreenCanvas 執行 putImageData、renderAnnotations、getImageData）、`worker-entry.ts`，讓 T003 通過
+- [X] T001 [P] 在 `packages/core/test/annotations.test.ts` 寫測試：`pixelate` 在區域內每個方塊都只剩單一顏色、區域外像素完全不變、不修改輸入、區域被夾在影像範圍內；`mosaicBlock` 的值為 max(12, ceil(短邊 / 20))；`renderAnnotations` 對每種註解發出預期的繪製指令（用假的 Ctx2D 記錄），且會略過 mosaic；`applyAnnotations` 先 pixelate 再呼叫 draw，沒有向量註解時不呼叫 draw
+- [X] T002 實作 `packages/core/src/annotations.ts`，讓 T001 通過，並從 `index.ts` 匯出；完成後做一次注入錯誤檢查（讓 pixelate 漏掉最後一個方塊），確認測試會失敗
+- [X] T003 在 `packages/core/test/worker.test.ts` 加測試：帶有 annotations 時，結果不是 original-fits；drawVectors 這個 dep 會收到向量註解；馬賽克在 applyEdit 之前執行（用像素驗證）
+- [X] T004 修改 `packages/core/src/worker.ts`、`client.ts`（`compress` 帶 annotations）、`codecs/browser.ts`（`drawVectors`：用 OffscreenCanvas 執行 putImageData、renderAnnotations、getImageData）、`worker-entry.ts`，讓 T003 通過
 
 ## Phase 2: User Story 3 的資料層（editor；US1 與 US2 都依賴它）
 
-- [ ] T005 [P] [US3] 寫 `packages/editor/test/annotate.test.ts`：annotate-add、update、remove 的重播；`documentState`；`reset` 不刪除註解；`stepNumber` 刪除後會遞補；`hitTest` 依最上層與容許誤差命中；`moveAnnotation` 移動所有點
-- [ ] T006 [P] [US3] 在 `packages/editor/test/property.test.ts` 加入混合序列（編輯加註解）：全部復原等於 identity 且沒有註解，全部重做等於最終狀態（SC-003）；SC-004：在測試圖片上放標記點註解，經過隨機的裁切、旋轉、翻轉後，匯出影像中標記的位置等於 `sourceToOutputMatrix` 映射的位置（誤差不超過 1 px）
-- [ ] T007 [US3] 實作 `packages/editor/src/ops.ts`（註解 Op）、`document.ts`（`documentState`）、`annotate.ts`，讓 T005 與 T006 通過；並確認 002 的屬性測試仍然通過
+- [X] T005 [P] [US3] 寫 `packages/editor/test/annotate.test.ts`：annotate-add、update、remove 的重播；`documentState`；`reset` 不刪除註解；`stepNumber` 刪除後會遞補；`hitTest` 依最上層與容許誤差命中；`moveAnnotation` 移動所有點
+- [X] T006 [P] [US3] 在 `packages/editor/test/property.test.ts` 加入混合序列（編輯加註解）：全部復原等於 identity 且沒有註解，全部重做等於最終狀態（SC-003）；SC-004：在測試圖片上放標記點註解，經過隨機的裁切、旋轉、翻轉後，匯出影像中標記的位置等於 `sourceToOutputMatrix` 映射的位置（誤差不超過 1 px）
+- [X] T007 [US3] 實作 `packages/editor/src/ops.ts`（註解 Op）、`document.ts`（`documentState`）、`annotate.ts`，讓 T005 與 T006 通過；並確認 002 的屬性測試仍然通過
 
 ## Phase 3: User Story 1 — 貼上、標註、複製 (P1) 🎯
 

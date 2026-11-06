@@ -1,10 +1,17 @@
 /// <reference lib="webworker" />
-import { browserCodecs, decode, preview, release, toPng } from './codecs/browser'
+import { browserCodecs, decode, drawVectors, preview, release, toPng } from './codecs/browser'
 import { createHandler, type WorkerInMessage, type WorkerOutMessage } from './worker'
 
 declare const self: DedicatedWorkerGlobalScope
 
-const handle = createHandler({ decode, codecs: browserCodecs, toPng, preview, release })
+const handle = createHandler({
+  decode,
+  codecs: browserCodecs,
+  toPng,
+  preview,
+  release,
+  drawVectors,
+})
 
 self.onmessage = (e: MessageEvent<WorkerInMessage>) => {
   void handle(e.data, (m: WorkerOutMessage) => {

@@ -17,3 +17,17 @@ export {
   type Rect,
   type Size,
 } from './edit'
+export {
+  applyAnnotations,
+  boxOf,
+  FONT_STACK,
+  mosaicBlock,
+  pixelate,
+  renderAnnotations,
+  stepNumbers,
+  stepRadius,
+  textSize,
+  type Annotation,
+  type AnnotationKind,
+  type Ctx2D,
+} from './annotations'

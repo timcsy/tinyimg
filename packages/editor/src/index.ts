@@ -12,3 +12,21 @@ export {
   type Handle,
   type RatioOption,
 } from './crop'
+export {
+  applyAnnotationOp,
+  applyDocOp,
+  applyDocOps,
+  isAnnotationOp,
+  type AnnotationOp,
+  type DocState,
+  type EditOp,
+} from './ops'
+export {
+  annotationLabel,
+  hitTest,
+  KIND_NAME,
+  moveAnnotation,
+  PALETTE,
+  stepNumber,
+  textBox,
+} from './annotate'

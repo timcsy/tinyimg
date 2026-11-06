@@ -3,6 +3,7 @@ import { createHandler, type WorkerOutMessage } from '../src/worker'
 import { fakeCodecs } from './fixtures/fakeCodecs'
 import { blank, gifBytes } from './fixtures/generate'
 import { identityEdit } from '../src/edit'
+import type { RawImage } from '../src/types'
 
 const request = (id: number) => ({
   id,
@@ -209,5 +210,80 @@ describe('worker handler', () => {
     expect(released).toEqual([])
     await run({ type: 'compress', id: 3, file: file(), request: request(3), fileKey: 2 })
     expect(released).toEqual([a])
+  })
+  it('帶有 annotations 時不回傳原始檔，並把向量註解交給 drawVectors', async () => {
+    const seen: string[][] = []
+    const { out, run } = setup({
+      decode: async () => blank(100, 100),
+      drawVectors: async (img, vectors) => {
+        seen.push(vectors.map((a) => a.kind))
+        return img
+      },
+    })
+    const small = new Uint8Array(500)
+    const annotations = [
+      {
+        id: 'a',
+        kind: 'arrow' as const,
+        points: [
+          { x: 1, y: 1 },
+          { x: 50, y: 50 },
+        ],
+        color: '#e03131',
+        width: 4,
+      },
+    ]
+    await run({
+      type: 'compress',
+      id: 1,
+      file: { name: 'a.jpg', mimeType: 'image/jpeg', bytes: small.buffer as ArrayBuffer },
+      request: request(1),
+      annotations,
+    })
+    const m = out[0]!
+    expect(m.type === 'result' && m.result.status).not.toBe('original-fits')
+    expect(seen).toEqual([['arrow']])
+  })
+  it('馬賽克在 applyEdit 之前執行（裁切後送去編碼的影像仍是方塊化的）', async () => {
+    const encoded: RawImage[] = []
+    const codecs = fakeCodecs({})
+    const orig = codecs.encode
+    codecs.encode = async (img, f, q) => {
+      encoded.push(img)
+      return orig(img, f, q)
+    }
+    const src = blank(60, 60)
+    for (let i = 0; i < src.data.length; i += 4) src.data[i] = (i / 4) % 251
+    const { run } = setup({ decode: async () => src, codecs })
+    const edit = {
+      ...identityEdit({ width: 60, height: 60 }),
+      crop: { x: 0, y: 0, width: 24, height: 24 },
+      output: { width: 24, height: 24 },
+    }
+    await run({
+      type: 'compress',
+      id: 1,
+      file: file(),
+      request: request(1),
+      edit,
+      annotations: [
+        {
+          id: 'm',
+          kind: 'mosaic',
+          points: [
+            { x: 0, y: 0 },
+            { x: 24, y: 24 },
+          ],
+          color: '#000000',
+          width: 1,
+        },
+      ],
+    })
+    const img = encoded[0]!
+    expect([img.width, img.height]).toEqual([24, 24])
+    // 第一個 12×12 方塊內 R 值全部相同
+    const r0 = img.data[0]
+    for (let y = 0; y < 12; y++)
+      for (let x = 0; x < 12; x++) expect(img.data[(y * 24 + x) * 4]).toBe(r0)
   })
 })

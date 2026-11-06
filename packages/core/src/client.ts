@@ -1,3 +1,4 @@
+import type { Annotation } from './annotations'
 import type { EditState } from './edit'
 import type { CompressError, CompressRequest, CompressResult, SourceInfo } from './types'
 import type { WorkerInMessage, WorkerOutMessage } from './worker'
@@ -22,6 +23,7 @@ export interface Compressor {
     req: Omit<CompressRequest, 'id'>,
     edit?: EditState,
     onPreview?: (p: Preview) => void,
+    annotations?: Annotation[],
   ): Promise<CompressOutcome>
   toPng(bytes: Uint8Array, mimeType: string): Promise<Uint8Array>
   dispose(): void
@@ -96,7 +98,7 @@ export function createCompressor(
   }
 
   return {
-    compress(file, req, edit, onPreview) {
+    compress(file, req, edit, onPreview, annotations) {
       if (currentCompress !== null) supersede(currentCompress)
       const id = nextId++
       currentCompress = id
@@ -121,6 +123,7 @@ export function createCompressor(
               ...(edit ? { edit } : {}),
               ...(onPreview ? { wantPreview: true } : {}),
               fileKey,
+              ...(annotations?.length ? { annotations } : {}),
             },
             [bytes],
           )

@@ -1,3 +1,4 @@
+import { renderAnnotations, type Annotation } from '../annotations'
 import type { Codecs, RawImage } from '../types'
 import { encodeJpeg, encodePng, encodeWebp } from './wasm'
 
@@ -99,4 +100,14 @@ export async function preview(img: RawImage): Promise<ImageBitmap> {
     new ImageData(new Uint8ClampedArray(img.data), img.width, img.height),
     opts,
   )
+}
+
+/** 把向量註解畫到影像上（與預覽共用 renderAnnotations，research 003 R3） */
+export async function drawVectors(img: RawImage, vectors: Annotation[]): Promise<RawImage> {
+  const canvas = toCanvas(img)
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+  if (!ctx) throw new Error('OffscreenCanvas 2d 不可用')
+  renderAnnotations(ctx, vectors)
+  const data = ctx.getImageData(0, 0, img.width, img.height)
+  return { width: img.width, height: img.height, data: data.data }
 }

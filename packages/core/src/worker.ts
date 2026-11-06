@@ -1,5 +1,6 @@
 import { hasAlpha, isAnimatedGif } from './analyze'
 import { compressToTarget } from './compress'
+import { applyAnnotations, type Annotation } from './annotations'
 import { applyEdit, identityEdit, type EditState } from './edit'
 import { validateRequest } from './validate'
 import {
@@ -25,6 +26,8 @@ export type WorkerInMessage =
       wantPreview?: boolean
       /** 同一個檔案的識別碼；相同時沿用快取的解碼結果（例如每次編輯） */
       fileKey?: number
+      /** 註解（原圖座標）；匯出時先合成再套用編輯 */
+      annotations?: Annotation[]
     }
   | { type: 'to-png'; id: number; bytes: ArrayBuffer; mimeType: string }
 
@@ -42,6 +45,8 @@ export interface WorkerDeps {
   preview?(img: RawImage): Promise<unknown>
   /** 處理結束（成功或失敗）後釋放 decode 保留的資源 */
   release?(img: RawImage): void
+  /** 把向量註解畫到影像上（瀏覽器以 OffscreenCanvas 實作） */
+  drawVectors?(img: RawImage, vectors: Annotation[]): Promise<RawImage>
 }
 
 const ERR = {
@@ -117,11 +122,18 @@ export function createHandler(deps: WorkerDeps) {
           // 忽略：主執行緒仍會拿到壓縮結果
         }
       }
-      const edited =
+      const annotations = msg.annotations ?? []
+      const geometryEdited =
         msg.edit !== undefined &&
         JSON.stringify(msg.edit) !== JSON.stringify(identityEdit(original))
+      // 有任何編輯或註解時，原始檔就不再代表這張影像
+      const edited = geometryEdited || annotations.length > 0
       try {
-        if (edited) img = await applyEdit(img, msg.edit!, deps.codecs.resize?.bind(deps.codecs))
+        // 順序：馬賽克（破壞原圖像素）→ 向量註解 → applyEdit（research 003 R2）
+        if (annotations.length > 0)
+          img = await applyAnnotations(img, annotations, deps.drawVectors?.bind(deps))
+        if (geometryEdited)
+          img = await applyEdit(img, msg.edit!, deps.codecs.resize?.bind(deps.codecs))
       } catch {
         return fail(ERR.internal)
       }

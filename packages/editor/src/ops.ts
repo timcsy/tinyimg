@@ -1,17 +1,35 @@
-import { identityEdit, orientedSize, unorient, type EditState, type Size } from '@tinyimg/core'
+import {
+  identityEdit,
+  orientedSize,
+  unorient,
+  type Annotation,
+  type EditState,
+  type Size,
+} from '@tinyimg/core'
 
-export type Op =
+export type EditOp =
   | { type: 'crop'; x: number; y: number; width: number; height: number }
   | { type: 'rotate'; direction: 1 | -1 }
   | { type: 'flip'; axis: 'x' | 'y' }
   | { type: 'resize'; width: number; height: number }
   | { type: 'reset' }
 
+/** 註解操作（research 003 R4）：與編輯操作共用同一條歷史 */
+export type AnnotationOp =
+  | { type: 'annotate-add'; annotation: Annotation }
+  | { type: 'annotate-update'; id: string; patch: Partial<Omit<Annotation, 'id' | 'kind'>> }
+  | { type: 'annotate-remove'; id: string }
+
+export type Op = EditOp | AnnotationOp
+
+export const isAnnotationOp = (op: Op): op is AnnotationOp => op.type.startsWith('annotate-')
+
 const mod4 = (n: number) => (((n % 4) + 4) % 4) as 0 | 1 | 2 | 3
 const swap = (s: Size): Size => ({ width: s.height, height: s.width })
 
-/** 純函式：把一個操作套到標準化狀態上 */
+/** 純函式：把一個操作套到標準化狀態上（註解操作不影響 EditState） */
 export function applyOp(s: EditState, op: Op, source: Size): EditState {
+  if (isAnnotationOp(op)) return s
   switch (op.type) {
     case 'reset':
       return identityEdit(source)
@@ -65,4 +83,39 @@ export function applyOp(s: EditState, op: Op, source: Size): EditState {
 
 export function applyOps(source: Size, ops: Op[], from?: EditState): EditState {
   return ops.reduce((s, op) => applyOp(s, op, source), from ?? identityEdit(source))
+}
+
+/** 文件狀態：編輯（EditState）加上註解清單 */
+export interface DocState {
+  edit: EditState
+  annotations: Annotation[]
+}
+
+export function applyAnnotationOp(list: Annotation[], op: AnnotationOp): Annotation[] {
+  switch (op.type) {
+    case 'annotate-add':
+      if (list.some((a) => a.id === op.annotation.id))
+        throw new Error(`註解 id 重複：${op.annotation.id}`)
+      return [...list, op.annotation]
+    case 'annotate-update': {
+      if (!list.some((a) => a.id === op.id)) throw new Error(`找不到註解：${op.id}`)
+      return list.map((a) => (a.id === op.id ? { ...a, ...op.patch } : a))
+    }
+    case 'annotate-remove':
+      if (!list.some((a) => a.id === op.id)) throw new Error(`找不到註解：${op.id}`)
+      return list.filter((a) => a.id !== op.id)
+  }
+}
+
+export function applyDocOp(s: DocState, op: Op, source: Size): DocState {
+  return isAnnotationOp(op)
+    ? { edit: s.edit, annotations: applyAnnotationOp(s.annotations, op) }
+    : { edit: applyOp(s.edit, op, source), annotations: s.annotations }
+}
+
+export function applyDocOps(source: Size, ops: Op[], from?: DocState): DocState {
+  return ops.reduce(
+    (s, op) => applyDocOp(s, op, source),
+    from ?? { edit: identityEdit(source), annotations: [] },
+  )
 }
