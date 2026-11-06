@@ -1,0 +1,16 @@
+{
+  "version": "0.7.6",
+  "structureVersion": "2",
+  "language": "zh-TW",
+  "createdAt": "2026-11-06T04:54:58.360Z",
+  "tools": [
+    "agents-md",
+    "copilot",
+    "speckit"
+  ],
+  "skillDirs": [
+    ".agents/skills",
+    ".claude/skills"
+  ],
+  "updatedAt": "2026-11-06T04:54:58.406Z"
+}

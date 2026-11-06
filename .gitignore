@@ -1,83 +1,28 @@
-# TinyImg - 純前端圖片壓縮工具 .gitignore
-
-# 作業系統生成的檔案
+# OS / 編輯器
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-desktop.ini
-
-# 編輯器和IDE
-.vscode/
 .idea/
 *.swp
-*.swo
-*~
-
-# Node.js (如果未來需要使用)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json
-yarn.lock
-
-# 臨時檔案和快取
 *.tmp
-*.temp
-.cache/
-.parcel-cache/
 
-# 建置輸出目錄 (未來可能需要)
+# Node
+node_modules/
+*.log
+.env*
+
+# 建置與測試輸出
 dist/
 build/
-out/
-
-# 環境變數檔案
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# 測試覆蓋率報告
 coverage/
-*.lcov
+playwright-report/
+test-results/
+blob-report/
 
-# 日誌檔案
-*.log
-logs/
+# 測試時產生的圖片（由產生器建立，不進版本控制）
+apps/web/e2e/fixtures/generated/
 
-# 備份檔案
-*.bak
-*.backup
-*.orig
-
-# 壓縮檔案 (避免意外提交測試用的圖片)
-*.zip
-*.rar
-*.7z
-*.tar.gz
-
-# 大型測試圖片檔案 (保護隱私和節省空間)
-test-images/
-sample-images/
-*.jpg
-*.jpeg
-*.png
-*.gif
-*.webp
-*.bmp
-*.tiff
-*.svg
-
-# 專案特定
-# 如果有本地開發用的HTML檔案
-index-dev.html
-test.html
-
-# 統計和分析工具
-.nyc_output/
+# Vitest browser mode 失敗時的截圖
+__screenshots__/
+.vitest/
+apps/extension/dist-e2e/
+apps/extension/*.zip

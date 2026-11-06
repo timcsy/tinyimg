@@ -1,0 +1,41 @@
+{
+  "name": "tinyimg",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @tinyimg/web",
+    "build": "npm run build -w @tinyimg/web && npm run build -w @tinyimg/extension",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test -w @tinyimg/ui -w @tinyimg/extension -w @tinyimg/web && node --test \"scripts/*.test.mjs\"",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "e2e": "npm run e2e -w @tinyimg/web && npm run e2e -w @tinyimg/extension",
+    "size": "node scripts/check-size.mjs apps/web/dist",
+    "verify": "npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm test && npm run test:components -w @tinyimg/ui && npm run build && npm run size && npm run e2e",
+    "test:all": "npm run test --workspaces --if-present && node --test \"scripts/*.test.mjs\""
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^24.19.2",
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  }
+}

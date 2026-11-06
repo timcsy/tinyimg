@@ -1,0 +1,32 @@
+/** 介面文字集中管理（憲章 IV：日後多語化） */
+export const t = {
+  title: 'TinyImg',
+  tagline: '在你的裝置上壓縮圖片，不上傳到任何地方',
+  dropzone: '選擇或拖曳圖片到這裡',
+  dropzoneHint: '也可以直接貼上（Ctrl/Cmd + V）。支援 JPG、PNG、WebP、GIF。',
+  quality: '品質上限',
+  target: '目標大小（KB）',
+  format: '輸出格式',
+  formats: { auto: '自動', jpeg: 'JPEG', png: 'PNG', webp: 'WebP' },
+  formatAutoHint: '自動：有透明背景時用 PNG，否則用 JPEG',
+  targetInvalid: '目標大小必須介於 50 到 10240 KB',
+  original: '原圖',
+  result: '壓縮後',
+  processing: '處理中…',
+  copy: '複製到剪貼簿',
+  download: '下載',
+  copied: '已複製到剪貼簿。貼上後的檔案大小可能與壓縮結果不同（剪貼簿只支援 PNG）。',
+  copyUnsupported: '這個瀏覽器不支援複製圖片，請改用「下載」。',
+  copyFailed: '複製失敗。請確認頁面有焦點、瀏覽器允許剪貼簿，或改用「下載」。',
+  downloaded: '已開始下載',
+  status: {
+    achieved: '已達成目標',
+    'original-fits': '原圖已符合目標',
+    unreachable: '無法達成目標',
+  },
+  warnings: {
+    'alpha-flattened': '透明區域已填成白色（JPEG 不支援透明）。若要保留透明，請選擇 PNG 或 WebP。',
+    'animation-dropped': '動畫 GIF 只保留第一幀。',
+  },
+  privacy: '所有處理都在你的瀏覽器中完成，圖片不會離開你的裝置。',
+} as const
