@@ -1,4 +1,4 @@
-import { orientedSize, type Annotation, type CompressResult } from '@tinyimg/core'
+import { orientedSize, type Annotation, type CompressResult, type EditState } from '@tinyimg/core'
 import { createCompressor } from '@tinyimg/core/client'
 import { initialBox, ratioValue, RATIOS, type Box, type RatioOption } from '@tinyimg/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -18,6 +18,7 @@ import { copyResult, downloadResult } from './lib/output'
 import { commandFor, isTextTarget } from './lib/shortcuts'
 import { t } from './lib/strings'
 import { useEditor } from './lib/useEditor'
+import { createDebouncer } from './lib/debounce'
 import { createWorkspace, type Settings, type WorkspaceState } from './lib/workspace'
 import './app.css'
 
@@ -104,15 +105,27 @@ export default function TinyImgApp({
   })
   const ws = ctl.ws
 
-  const editTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+  // 編輯與設定都延後送出（拖曳時不必每一步都重新壓縮）；複製或下載前要先 flush，
+  // 否則會拿到少了最後幾個註解或舊設定的結果
+  const [editDebounce] = useState(() =>
+    createDebouncer<[EditState, Annotation[]]>(([e, a]) => void ws.setEdit(e, a), 200),
+  )
+  const [settingsDebounce] = useState(() =>
+    createDebouncer<Settings>((s) => void ws.updateSettings(s), 300),
+  )
+  const flushPending = useCallback(() => {
+    settingsDebounce.flush()
+    editDebounce.flush()
+  }, [editDebounce, settingsDebounce])
+  useEffect(
+    () => () => {
+      editDebounce.cancel()
+      settingsDebounce.cancel()
+    },
+    [editDebounce, settingsDebounce],
+  )
   const editor = useEditor(
-    useCallback(
-      (edit, annotations) => {
-        clearTimeout(editTimer.current)
-        editTimer.current = setTimeout(() => void ws.setEdit(edit, annotations), 200)
-      },
-      [ws],
-    ),
+    useCallback((edit, annotations) => editDebounce.schedule([edit, annotations]), [editDebounce]),
   )
   const { view: ed } = editor
 
@@ -125,11 +138,23 @@ export default function TinyImgApp({
   )
   useEffect(() => () => preview?.close(), [preview])
 
-  const settingsTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const onSettings = (s: Settings) => {
     setSettings(s)
-    clearTimeout(settingsTimer.current)
-    settingsTimer.current = setTimeout(() => void ws.updateSettings(s), 300)
+    settingsDebounce.schedule(s)
+  }
+  const copy = async () => {
+    flushPending()
+    setToast(await copyResult(compressor, ctl.result()))
+  }
+  const download = async () => {
+    flushPending()
+    try {
+      const r = await ctl.result()
+      const name = ctl.lastDone()?.source.name ?? file?.name ?? 'image'
+      setToast(downloadResult(r, name))
+    } catch {
+      // 壓縮失敗時，錯誤已經顯示在結果區
+    }
   }
 
   const loadToken = useRef(0)
@@ -233,13 +258,11 @@ export default function TinyImgApp({
       case 'redo':
         return editor.redo()
       case 'copy':
-        if (file) setToast(await copyResult(compressor, ctl.result()))
+        if (file) await copy()
         return
-      case 'download': {
-        const l = ctl.lastDone()
-        if (l) setToast(downloadResult(l.result, l.source.name))
+      case 'download':
+        if (file) await download()
         return
-      }
       case 'help':
         setHelpOpen(true)
         return
@@ -468,14 +491,7 @@ export default function TinyImgApp({
                   result={last?.result ?? null}
                   busy={view.kind === 'processing'}
                 />
-                {last && (
-                  <Actions
-                    result={last.result}
-                    name={last.source.name}
-                    compressor={compressor}
-                    onNotify={setToast}
-                  />
-                )}
+                {last && <Actions onCopy={copy} onDownload={download} />}
               </>
             )}
             <Toast message={toast} />

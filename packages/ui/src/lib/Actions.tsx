@@ -1,18 +1,12 @@
-import type { CompressResult } from '@tinyimg/core'
-import type { Compressor } from '@tinyimg/core/client'
-import { copyResult, downloadResult } from './output'
 import { t } from './strings'
 
 export function Actions({
-  result,
-  name,
-  compressor,
-  onNotify,
+  onCopy,
+  onDownload,
 }: {
-  result: CompressResult
-  name: string
-  compressor: Compressor
-  onNotify: (msg: string) => void
+  /** 由呼叫端先送出待處理的編輯，再複製最新的結果 */
+  onCopy: () => void | Promise<void>
+  onDownload: () => void | Promise<void>
 }) {
   return (
     <div className="actions">
@@ -20,7 +14,7 @@ export function Actions({
         className="btn primary"
         type="button"
         title={`${t.copy}（⌘/Ctrl+C）`}
-        onClick={async () => onNotify(await copyResult(compressor, result))}
+        onClick={() => void onCopy()}
       >
         {t.copy}
       </button>
@@ -28,7 +22,7 @@ export function Actions({
         className="btn"
         type="button"
         title={`${t.download}（⌘/Ctrl+S）`}
-        onClick={() => onNotify(downloadResult(result, name))}
+        onClick={() => void onDownload()}
       >
         {t.download}
       </button>
