@@ -8,7 +8,8 @@ import { AnnotationLayer, type AnnotationStyle, type Tool } from './lib/Annotati
 import { CompareSlider } from './lib/CompareSlider'
 import { CropOverlay } from './lib/CropOverlay'
 import { ResizeDialog, ShortcutHelp } from './lib/Dialogs'
-import { DropZone, imageFromPaste } from './lib/DropZone'
+import { BatchView } from './lib/BatchView'
+import { DropZone, imagesFromPaste } from './lib/DropZone'
 import { EditorCanvas } from './lib/EditorCanvas'
 import { ResultInfo } from './lib/ResultInfo'
 import { SettingsPanel } from './lib/Settings'
@@ -37,7 +38,14 @@ export interface Incoming {
   key: string
 }
 
-export default function TinyImgApp({ incoming = null }: { incoming?: Incoming | null }) {
+export default function TinyImgApp({
+  incoming = null,
+  incomingFiles = null,
+}: {
+  incoming?: Incoming | null
+  /** 外部送入的多張圖片（例如分享目標），進入批次模式 */
+  incomingFiles?: { files: File[]; key: string } | null
+}) {
   const [compressor] = useState(() => createCompressor())
   const [view, setView] = useState<WorkspaceState>({ kind: 'idle' })
   const [last, setLast] = useState<Done | null>(null)
@@ -145,6 +153,22 @@ export default function TinyImgApp({ incoming = null }: { incoming?: Incoming | 
     [ctl, editor, settings, ws],
   )
 
+  // 批次：放入多張時進入批次模式；從批次開啟單張後可以回到批次（spec 005 US3）
+  const [batch, setBatch] = useState<{ files: File[]; key: number } | null>(null)
+  const [showBatch, setShowBatch] = useState(false)
+  const onFiles = useCallback(
+    (files: File[]) => {
+      if (files.length > 1) {
+        setBatch({ files, key: Date.now() })
+        setShowBatch(true)
+      } else if (files[0]) {
+        setShowBatch(false)
+        void onFile(files[0])
+      }
+    },
+    [onFile],
+  )
+
   // 外部送入的圖片（例如外掛的截圖）：只在 key 改變時放入，避免同一張圖重複載入
   const lastIncoming = useRef<string | null>(null)
   useEffect(() => {
@@ -156,15 +180,22 @@ export default function TinyImgApp({ incoming = null }: { incoming?: Incoming | 
   // 整個頁面都可以貼上新圖片
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
-      const f = imageFromPaste(e)
-      if (f) {
+      const files = imagesFromPaste(e)
+      if (files.length) {
         e.preventDefault()
-        void onFile(f)
+        onFiles(files)
       }
     }
     document.addEventListener('paste', onPaste)
     return () => document.removeEventListener('paste', onPaste)
-  }, [onFile])
+  }, [onFiles])
+
+  const lastIncomingFiles = useRef<string | null>(null)
+  useEffect(() => {
+    if (!incomingFiles || incomingFiles.key === lastIncomingFiles.current) return
+    lastIncomingFiles.current = incomingFiles.key
+    onFiles(incomingFiles.files)
+  }, [incomingFiles, onFiles])
 
   const run = async (cmd: ToolCommand) => {
     const out = editor.state().output
@@ -300,9 +331,31 @@ export default function TinyImgApp({ incoming = null }: { incoming?: Incoming | 
         <p>{t.tagline}</p>
       </header>
 
-      {!file ? (
+      {/* 批次清單只要存在就保持掛載（切到單張編輯器時隱藏），回到批次時不必重新處理 */}
+      {batch && (
+        <div className="workspace" hidden={!showBatch}>
+          <BatchView
+            key={batch.key}
+            files={batch.files}
+            settings={settings}
+            onOpen={(f) => {
+              setShowBatch(false)
+              void onFile(f)
+            }}
+            onClose={() => {
+              setShowBatch(false)
+              setBatch(null)
+            }}
+          />
+          <aside className="side">
+            <DropZone onFiles={onFiles} compact />
+            <SettingsPanel value={settings} onChange={onSettings} />
+          </aside>
+        </div>
+      )}
+      {showBatch && batch ? null : !file ? (
         <>
-          <DropZone onFile={onFile} />
+          <DropZone onFiles={onFiles} />
           <SettingsPanel value={settings} onChange={onSettings} />
         </>
       ) : (
@@ -397,7 +450,12 @@ export default function TinyImgApp({ incoming = null }: { incoming?: Incoming | 
           </section>
 
           <aside className="side">
-            <DropZone onFile={onFile} compact />
+            <DropZone onFiles={onFiles} compact />
+            {batch && (
+              <button type="button" className="btn" onClick={() => setShowBatch(true)}>
+                回到批次（{batch.files.length} 張）
+              </button>
+            )}
             <SettingsPanel value={settings} onChange={onSettings} />
             {view.kind === 'error' ? (
               <p className="error-box" role="alert" data-testid="error">

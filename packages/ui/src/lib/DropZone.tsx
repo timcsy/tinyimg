@@ -2,17 +2,18 @@ import { useRef, useState } from 'react'
 import { t } from './strings'
 
 export function DropZone({
-  onFile,
+  onFiles,
   compact = false,
 }: {
-  onFile: (f: File) => void
+  /** 一張或多張；多張時由呼叫端進入批次模式 */
+  onFiles: (files: File[]) => void
   compact?: boolean
 }) {
   const input = useRef<HTMLInputElement>(null)
   const [over, setOver] = useState(false)
   const pick = (files: FileList | null | undefined) => {
-    const f = files?.[0]
-    if (f) onFile(f)
+    const list = Array.from(files ?? [])
+    if (list.length) onFiles(list)
   }
 
   return (
@@ -53,6 +54,7 @@ export function DropZone({
         className="visually-hidden"
         type="file"
         accept="image/*"
+        multiple
         tabIndex={-1}
         aria-hidden="true"
         data-testid="file-input"
@@ -65,9 +67,13 @@ export function DropZone({
   )
 }
 
-/** 在整個頁面監聽貼上：無論是否已經有圖片，貼上都會放入新圖片 */
-export function imageFromPaste(e: ClipboardEvent): File | null {
+/** 在整個頁面監聽貼上：取出剪貼簿中所有的圖片檔（多張時進入批次） */
+export function imagesFromPaste(e: ClipboardEvent): File[] {
   const items = Array.from(e.clipboardData?.items ?? [])
-  const item = items.find((i) => i.kind === 'file' && i.type.startsWith('image/'))
-  return item?.getAsFile() ?? e.clipboardData?.files?.[0] ?? null
+  const files = items
+    .filter((i) => i.kind === 'file' && i.type.startsWith('image/'))
+    .map((i) => i.getAsFile())
+    .filter((f): f is File => f !== null)
+  if (files.length) return files
+  return Array.from(e.clipboardData?.files ?? []).filter((f) => f.type.startsWith('image/'))
 }
