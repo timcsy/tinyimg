@@ -3,6 +3,7 @@ import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { takeSharedFiles } from './share-inbox'
 import './update-banner.css'
+import { watchForUpdate } from './update'
 
 /** 有新版本時顯示提示；不強制重新整理（spec 005 FR-002） */
 function useUpdateAvailable() {
@@ -11,19 +12,9 @@ function useUpdateAvailable() {
     if (!('serviceWorker' in navigator) || !import.meta.env.PROD) return
     // 在頁面載入完成、瀏覽器閒置時才註冊（常見做法：避免預先快取和首次載入搶資源）。
     // 曾嘗試再延後 10 秒，但在高負載機器上的對照實驗被雜訊主導，沒有證據支持（research 005 R5）
-    let cancelled = false
+    let stop: (() => void) | null = null
     const register = () => {
-      if (cancelled) return
-      void navigator.serviceWorker.register('./sw.js').then((reg) => {
-        const watch = (sw: ServiceWorker | null) => {
-          if (!sw) return
-          sw.addEventListener('statechange', () => {
-            if (sw.state === 'installed' && navigator.serviceWorker.controller) setWaiting(sw)
-          })
-        }
-        if (reg.waiting && navigator.serviceWorker.controller) setWaiting(reg.waiting)
-        reg.addEventListener('updatefound', () => watch(reg.installing))
-      })
+      stop = watchForUpdate(navigator.serviceWorker, './sw.js', setWaiting)
     }
     const idle = () =>
       'requestIdleCallback' in window
@@ -32,7 +23,7 @@ function useUpdateAvailable() {
     if (document.readyState === 'complete') idle()
     else window.addEventListener('load', idle, { once: true })
     return () => {
-      cancelled = true
+      stop?.()
       window.removeEventListener('load', idle)
     }
   }, [])
