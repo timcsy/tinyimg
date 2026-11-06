@@ -11,6 +11,16 @@ export type Command =
   | 'help'
   | 'apply-crop'
   | 'cancel-crop'
+  | 'delete'
+  | 'tool-select'
+  | 'tool-pen'
+  | 'tool-highlighter'
+  | 'tool-arrow'
+  | 'tool-rect'
+  | 'tool-ellipse'
+  | 'tool-text'
+  | 'tool-step'
+  | 'tool-mosaic'
 
 export interface KeyInput {
   key: string
@@ -31,6 +41,19 @@ export interface Match {
 }
 
 const hit = (command: Command): Match => ({ command, preventDefault: true })
+
+/** 註解工具鍵（003） */
+const TOOL_KEYS: Record<string, Command> = {
+  v: 'tool-select',
+  p: 'tool-pen',
+  h: 'tool-highlighter',
+  a: 'tool-arrow',
+  b: 'tool-rect',
+  e: 'tool-ellipse',
+  t: 'tool-text',
+  n: 'tool-step',
+  m: 'tool-mosaic',
+}
 
 /** 把按鍵對應到命令；回傳 null 代表不攔截，交給瀏覽器處理 */
 export function commandFor(e: KeyInput): Match | null {
@@ -53,6 +76,9 @@ export function commandFor(e: KeyInput): Match | null {
   }
   if (e.altKey) return null
   if (e.key === '?') return hit('help')
+  if (e.key === 'Delete' || e.key === 'Backspace') return hit('delete')
+  if (e.key === 'Escape') return hit('tool-select')
+  if (!e.shiftKey && TOOL_KEYS[k]) return hit(TOOL_KEYS[k])
   if (k === 'c') return hit('crop')
   if (k === 'r') return hit(e.shiftKey ? 'rotate-ccw' : 'rotate-cw')
   if (k === 'f') return hit(e.shiftKey ? 'flip-y' : 'flip-x')
@@ -83,5 +109,12 @@ export const SHORTCUTS: { keys: string; label: string }[] = [
   { keys: '⌘/Ctrl + Shift + Z、Ctrl + Y', label: '重做' },
   { keys: '⌘/Ctrl + C', label: '複製結果' },
   { keys: '⌘/Ctrl + S', label: '下載結果' },
+  { keys: 'V', label: '選取註解' },
+  { keys: 'P / H', label: '畫筆 / 螢光筆' },
+  { keys: 'A / B / E', label: '箭頭 / 矩形 / 橢圓' },
+  { keys: 'T / N / M', label: '文字 / 編號 / 馬賽克' },
+  { keys: 'Enter（在畫布上）', label: '在中央建立註解' },
+  { keys: '方向鍵 / Delete', label: '移動 / 刪除選取的註解' },
+  { keys: 'Esc', label: '回到選取工具' },
   { keys: '?', label: '顯示快捷鍵' },
 ]

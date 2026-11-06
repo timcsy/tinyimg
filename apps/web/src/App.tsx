@@ -1,8 +1,10 @@
-import { orientedSize, type CompressResult } from '@tinyimg/core'
+import { orientedSize, type Annotation, type CompressResult } from '@tinyimg/core'
 import { createCompressor } from '@tinyimg/core/client'
 import { initialBox, ratioValue, RATIOS, type Box, type RatioOption } from '@tinyimg/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Actions, Toast } from './lib/Actions'
+import { AnnotationBar } from './lib/AnnotationBar'
+import { AnnotationLayer, type AnnotationStyle, type Tool } from './lib/AnnotationLayer'
 import { CompareSlider } from './lib/CompareSlider'
 import { CropOverlay } from './lib/CropOverlay'
 import { ResizeDialog, ShortcutHelp } from './lib/Dialogs'
@@ -46,6 +48,10 @@ export default function App() {
   const [resizeOpen, setResizeOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [compare, setCompare] = useState(50)
+  const [tool, setTool] = useState<Tool>('select')
+  const [annStyle, setAnnStyle] = useState<AnnotationStyle>({ color: '#e03131', width: 4 })
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [draft, setDraft] = useState<Annotation | null>(null)
 
   // 工作區控制器：在初始化函式內以閉包保存狀態，不需要 ref，也不在 effect 裡 setState
   const [ctl] = useState(() => {
@@ -86,9 +92,9 @@ export default function App() {
   const editTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const editor = useEditor(
     useCallback(
-      (edit) => {
+      (edit, annotations) => {
         clearTimeout(editTimer.current)
-        editTimer.current = setTimeout(() => void ws.setEdit(edit), 200)
+        editTimer.current = setTimeout(() => void ws.setEdit(edit, annotations), 200)
       },
       [ws],
     ),
@@ -191,8 +197,54 @@ export default function App() {
       case 'help':
         setHelpOpen(true)
         return
+      case 'delete':
+        if (selectedId) {
+          editor.push({ type: 'annotate-remove', id: selectedId })
+          setSelectedId(null)
+        }
+        return
+      default:
+        if (cmd.startsWith('tool-')) {
+          setMode('viewing')
+          setTool(cmd.slice(5) as Tool)
+          if (cmd === 'tool-select') setSelectedId(null)
+        }
     }
   }
+
+  // 註解層的回呼保持穩定（AnnotationLayer 以 memo 包起來；拖曳時不必重新算繪 200 個命中區，SC-006）
+  const pushOp = editor.push
+  const onAnnAdd = useCallback(
+    (a: Annotation) => {
+      pushOp({ type: 'annotate-add', annotation: a })
+      if (tool === 'select') setSelectedId(a.id)
+    },
+    [pushOp, tool],
+  )
+  const onAnnUpdate = useCallback(
+    (id: string, patch: Partial<Annotation>) => pushOp({ type: 'annotate-update', id, patch }),
+    [pushOp],
+  )
+  const onAnnRemove = useCallback(
+    (id: string) => {
+      pushOp({ type: 'annotate-remove', id })
+      setSelectedId(null)
+    },
+    [pushOp],
+  )
+
+  // 改變顏色或粗細時，若有選取的註解，一併套用到它（spec US3-3）
+  const onAnnStyle = (s: AnnotationStyle) => {
+    setAnnStyle(s)
+    const sel = selectedId ? editor.annotations().find((a) => a.id === selectedId) : undefined
+    if (!sel || !ed.edit) return
+    const k = orientedSize(ed.edit).width / ed.edit.output.width
+    const patch: Partial<Annotation> = {}
+    if (s.color !== sel.color) patch.color = s.color
+    if (s.width !== annStyle.width) patch.width = s.width * k
+    if (Object.keys(patch).length) editor.push({ type: 'annotate-update', id: sel.id, patch })
+  }
+  const shown = draft ? [...ed.annotations.filter((a) => a.id !== draft.id), draft] : ed.annotations
   const runRef = useRef(run)
   useEffect(() => {
     runRef.current = run
@@ -247,6 +299,12 @@ export default function App() {
               cropping={mode === 'cropping'}
               onCommand={(c) => void run(c)}
             />
+            <AnnotationBar
+              tool={tool}
+              style={annStyle}
+              onTool={(t) => void run(`tool-${t}` as ToolCommand)}
+              onStyle={onAnnStyle}
+            />
             {mode === 'cropping' && (
               <div className="crop-bar">
                 <label>
@@ -279,7 +337,12 @@ export default function App() {
             >
               {preview && ed.edit && ed.source && (
                 <>
-                  <EditorCanvas preview={preview} source={ed.source} edit={ed.edit} />
+                  <EditorCanvas
+                    preview={preview}
+                    source={ed.source}
+                    edit={ed.edit}
+                    annotations={shown}
+                  />
                   {mode === 'cropping' ? (
                     <CropOverlay
                       output={ed.edit.output}
@@ -290,8 +353,23 @@ export default function App() {
                       onCancel={() => void run('cancel-crop')}
                     />
                   ) : (
-                    view.kind === 'done' &&
-                    last && <CompareSlider after={last.url} value={compare} onChange={setCompare} />
+                    <>
+                      {view.kind === 'done' && last && (
+                        <CompareSlider after={last.url} value={compare} onChange={setCompare} />
+                      )}
+                      <AnnotationLayer
+                        edit={ed.edit}
+                        annotations={ed.annotations}
+                        tool={tool}
+                        style={annStyle}
+                        selectedId={selectedId}
+                        onAdd={onAnnAdd}
+                        onUpdate={onAnnUpdate}
+                        onRemove={onAnnRemove}
+                        onSelect={setSelectedId}
+                        onDraft={setDraft}
+                      />
+                    </>
                   )}
                 </>
               )}

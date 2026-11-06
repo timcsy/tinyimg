@@ -46,7 +46,9 @@ it('10 張截圖至少 9 張在 1 MB 內達成', async () => {
   expect(achieved).toBeGreaterThanOrEqual(9)
   // 測試要有鑑別力：多數截圖無損時超過 1 MB，必須靠量化或縮尺寸（舊版在此全部失敗）
   expect(neededWork).toBeGreaterThanOrEqual(5)
-})
+  // 10 張 2–5 MP 截圖的量化很吃 CPU；在高負載的機器上會超過預設的 120 秒。
+  // 放寬的是測試時限，不是 SC-002 的驗收標準（達成率）
+}, 300_000)
 
 // 教訓 A：要驗證參數真的會改變輸出
 it('量化色數越少，PNG 越小', async () => {

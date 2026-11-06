@@ -1,4 +1,5 @@
 import type {
+  Annotation,
   CompressError,
   CompressResult,
   EditState,
@@ -37,6 +38,10 @@ export function createWorkspace(
 ) {
   let file: File | null = null
   let edit: EditState | undefined
+  let annotations: Annotation[] = []
+  // 還沒送達的預覽回呼：在送達前，後續請求（例如改設定取代了原本的請求）都繼續要求預覽，
+  // 否則被取代的請求帶走預覽，畫布會永遠空白（003 E2E 發現）
+  let pendingPreview: ((p: Preview) => void) | undefined
   let lastSettings: Settings | null = null
   const ws = {
     state: { kind: 'idle' } as WorkspaceState,
@@ -47,14 +52,22 @@ export function createWorkspace(
     async setFile(f: File, settings: Settings, onPreview?: (p: Preview) => void) {
       file = f
       edit = undefined
-      await run(settings, onPreview)
+      annotations = []
+      pendingPreview = onPreview
+        ? (p) => {
+            pendingPreview = undefined
+            onPreview(p)
+          }
+        : undefined
+      await run(settings)
     },
     async updateSettings(settings: Settings) {
       if (file) await run(settings)
     },
     /** 編輯改變時重新壓縮；之後改設定也沿用這個 edit */
-    async setEdit(e: EditState) {
+    async setEdit(e: EditState, a: Annotation[] = []) {
       edit = e
+      annotations = a
       if (file && lastSettings) await run(lastSettings)
     },
   }
@@ -62,7 +75,7 @@ export function createWorkspace(
     ws.state = s
     onChange(s)
   }
-  async function run(settings: Settings, onPreview?: (p: Preview) => void) {
+  async function run(settings: Settings) {
     if (!file) return
     lastSettings = settings
     if (!validSettings(settings)) return set({ kind: 'invalid' })
@@ -76,7 +89,8 @@ export function createWorkspace(
           format: settings.format,
         },
         edit,
-        onPreview,
+        pendingPreview,
+        annotations.length ? annotations : undefined,
       )
       if ('superseded' in out) return
       set({ kind: 'done', source: out.source, result: out.result })

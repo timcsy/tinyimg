@@ -91,3 +91,30 @@ describe('SHORTCUTS（說明對話框的資料）', () => {
     for (const s of SHORTCUTS) expect(s.keys.length && s.label.length).toBeTruthy()
   })
 })
+
+describe('commandFor：註解工具（003）', () => {
+  it.each([
+    ['v', 'tool-select'],
+    ['p', 'tool-pen'],
+    ['h', 'tool-highlighter'],
+    ['a', 'tool-arrow'],
+    ['b', 'tool-rect'],
+    ['e', 'tool-ellipse'],
+    ['t', 'tool-text'],
+    ['n', 'tool-step'],
+    ['m', 'tool-mosaic'],
+  ] as const)('%s → %s', (k, cmd) => expect(commandFor(key(k))?.command).toBe(cmd))
+  it.each(['Delete', 'Backspace'])('%s → delete', (k) =>
+    expect(commandFor(key(k))?.command).toBe('delete'),
+  )
+  it('一般模式的 Escape → 回到選取工具', () =>
+    expect(commandFor(key('Escape'))?.command).toBe('tool-select'))
+  it('焦點在文字欄位時不攔截工具鍵與刪除鍵', () => {
+    expect(commandFor(key('t', { textTarget: true }))).toBeNull()
+    expect(commandFor(key('Backspace', { textTarget: true }))).toBeNull()
+  })
+  it('002 的快捷鍵不受影響', () => {
+    expect(commandFor(key('c'))?.command).toBe('crop')
+    expect(commandFor(key('f'))?.command).toBe('flip-x')
+  })
+})

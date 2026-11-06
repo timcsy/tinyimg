@@ -75,6 +75,7 @@ describe('workspace 狀態機', () => {
       { maxQuality: 0.5, targetBytes: 200 * 1024, format: 'webp' },
       undefined,
       undefined,
+      undefined,
     )
   })
   it('setEdit 會帶著 edit 重送；之後改設定也沿用這個 edit', async () => {
@@ -93,12 +94,14 @@ describe('workspace 狀態機', () => {
       expect.any(Object),
       edit,
       undefined,
+      undefined,
     )
     await ws.updateSettings({ ...settings, targetKB: 300 })
     expect(c.compress).toHaveBeenLastCalledWith(
       expect.any(File),
       expect.objectContaining({ targetBytes: 300 * 1024 }),
       edit,
+      undefined,
       undefined,
     )
   })
@@ -118,6 +121,7 @@ describe('workspace 狀態機', () => {
       expect.any(Object),
       undefined,
       undefined,
+      undefined,
     )
   })
   it('沒有檔案時 setEdit 不送出', async () => {
@@ -131,18 +135,64 @@ describe('workspace 狀態機', () => {
     })
     expect(c.compress).not.toHaveBeenCalled()
   })
-  it('setFile 才要求預覽（由 worker 解碼一次產生），改設定或編輯時不再要求', async () => {
+  it('setFile 才要求預覽（由 worker 解碼一次產生）；預覽送達後，改設定或編輯時不再要求', async () => {
     const c = fakeCompressor(async () => outcome())
     const ws = createWorkspace(c)
     const onPreview = vi.fn()
     await ws.setFile(file(), settings, onPreview)
-    expect(c.compress).toHaveBeenLastCalledWith(
-      expect.any(File),
-      expect.any(Object),
-      undefined,
-      onPreview,
-    )
+    const cb = (c.compress as ReturnType<typeof vi.fn>).mock.lastCall![3] as (p: unknown) => void
+    expect(typeof cb).toBe('function')
+    cb({ source: { width: 1, height: 1 }, bitmap: 'b' }) // 預覽送達
+    expect(onPreview).toHaveBeenCalledOnce()
     await ws.updateSettings({ ...settings, targetKB: 300 })
     expect((c.compress as ReturnType<typeof vi.fn>).mock.lastCall![3]).toBeUndefined()
+  })
+  it('setEdit 帶入註解時，壓縮請求一併帶上註解；沒有註解時不帶', async () => {
+    const c = fakeCompressor(async () => outcome())
+    const ws = createWorkspace(c)
+    await ws.setFile(file(), settings)
+    const edit = {
+      crop: { x: 0, y: 0, width: 1, height: 1 },
+      rotation: 0 as const,
+      flipX: false,
+      output: { width: 1, height: 1 },
+    }
+    const ann = [
+      {
+        id: 'a',
+        kind: 'arrow' as const,
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 1 },
+        ],
+        color: '#e03131',
+        width: 2,
+      },
+    ]
+    await ws.setEdit(edit, ann)
+    expect((c.compress as ReturnType<typeof vi.fn>).mock.lastCall![4]).toEqual(ann)
+    await ws.setEdit(edit, [])
+    expect((c.compress as ReturnType<typeof vi.fn>).mock.lastCall![4]).toBeUndefined()
+  })
+  it('預覽還沒送達前，後續的請求（例如改設定）會繼續要求預覽；送達後就不再要求', async () => {
+    const calls: unknown[][] = []
+    const c: Compressor = {
+      compress: vi.fn(async (...args: unknown[]) => {
+        calls.push(args)
+        return outcome()
+      }) as Compressor['compress'],
+      toPng: vi.fn(),
+      dispose: vi.fn(),
+    }
+    const ws = createWorkspace(c)
+    const onPreview = vi.fn()
+    await ws.setFile(file(), settings, onPreview)
+    await ws.updateSettings({ ...settings, targetKB: 300 }) // 取代了第一個請求，預覽還沒送達
+    const forwarded = calls[1]![3] as ((p: unknown) => void) | undefined
+    expect(typeof forwarded).toBe('function')
+    forwarded!({ source: { width: 1, height: 1 }, bitmap: 'b' })
+    expect(onPreview).toHaveBeenCalledOnce()
+    await ws.updateSettings({ ...settings, targetKB: 400 })
+    expect(calls[2]![3]).toBeUndefined()
   })
 })
