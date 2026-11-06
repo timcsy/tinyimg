@@ -30,6 +30,11 @@ export interface CompressOptions {
   minEdge?: number
   /** false 時不會回傳原始檔（例如影像已被編輯，原始檔不再代表它） */
   allowOriginal?: boolean
+  /**
+   * 0 到 1 之間時，直接從「最長邊 × startScale」開始嘗試，跳過原尺寸（spec 007）。
+   * 用於同一張圖編輯後重新壓縮：上一次已經證明更大的尺寸放不進目標。其他值一律忽略。
+   */
+  startScale?: number
 }
 
 /**
@@ -112,43 +117,52 @@ export async function compressToTarget(
     return { fit: r.best ? wrap(r.best) : null, smallest: wrap(r.smallest) }
   }
 
-  const first = await tryAtSize(img)
+  const resizeTo = async (edge: number) => {
+    const { width, height } = fitLongestEdge(img.width, img.height, edge)
+    checkCancel()
+    return codecs.resize ? await codecs.resize(img, width, height) : boxResize(img, width, height)
+  }
 
-  // 原圖本來就符合目標：重新編碼不比原圖小時，保留原圖
-  const sameFormat = req.format === 'auto' || MIME[format] === source.mimeType
-  if (
-    opts.allowOriginal !== false &&
-    source.byteSize <= target &&
-    sameFormat &&
-    warnings.length === 0
-  ) {
-    const reencoded = first.fit ?? first.smallest
-    if (reencoded.bytes.length >= source.byteSize) {
-      return {
-        ...finish('original-fits', {
-          bytes: source.bytes,
-          quality: null,
-          colors: null,
-          width: source.width,
-          height: source.height,
-        }),
-        mimeType: source.mimeType,
+  let longest = Math.max(img.width, img.height)
+  const s = opts.startScale
+  const warm = s !== undefined && Number.isFinite(s) && s > 0 && s < 1
+  let first: { fit: Attempt | null; smallest: Attempt }
+  if (warm) {
+    longest = Math.max(minEdge, Math.round(longest * s))
+    first = await tryAtSize(await resizeTo(longest))
+  } else {
+    first = await tryAtSize(img)
+
+    // 原圖本來就符合目標：重新編碼不比原圖小時，保留原圖
+    const sameFormat = req.format === 'auto' || MIME[format] === source.mimeType
+    if (
+      opts.allowOriginal !== false &&
+      source.byteSize <= target &&
+      sameFormat &&
+      warnings.length === 0
+    ) {
+      const reencoded = first.fit ?? first.smallest
+      if (reencoded.bytes.length >= source.byteSize) {
+        return {
+          ...finish('original-fits', {
+            bytes: source.bytes,
+            quality: null,
+            colors: null,
+            width: source.width,
+            height: source.height,
+          }),
+          mimeType: source.mimeType,
+        }
       }
     }
   }
   if (first.fit) return finish('achieved', first.fit)
 
   let smallest = first.smallest
-  let longest = Math.max(img.width, img.height)
   let roundSmallest = first.smallest
   while (longest > minEdge) {
     longest = Math.max(minEdge, Math.round(longest * nextScale(roundSmallest.bytes.length, target)))
-    const { width, height } = fitLongestEdge(img.width, img.height, longest)
-    checkCancel()
-    const resized = codecs.resize
-      ? await codecs.resize(img, width, height)
-      : boxResize(img, width, height)
-    const r = await tryAtSize(resized)
+    const r = await tryAtSize(await resizeTo(longest))
     if (r.fit) return finish('achieved', r.fit)
     roundSmallest = r.smallest
     if (r.smallest.bytes.length < smallest.bytes.length) smallest = r.smallest

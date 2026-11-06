@@ -286,4 +286,58 @@ describe('worker handler', () => {
     for (let y = 0; y < 12; y++)
       for (let x = 0; x < 12; x++) expect(img.data[(y * 24 + x) * 4]).toBe(r0)
   })
+
+  // spec 007：同一個檔案、同樣的設定、同樣的像素面積（例如旋轉、翻轉、註解），從上次的縮放比例開始
+  it('編輯後重新壓縮：從上次結果的比例開始；設定或面積改變時不沿用', async () => {
+    const codecs = fakeCodecs({})
+    const { out, run } = setup({ decode: async () => blank(2000, 2000), codecs })
+    const fullSize = () =>
+      codecs.calls.filter((c) => c.kind === 'encode' && c.width * c.height === 2000 * 2000).length
+    await run({ type: 'compress', id: 1, file: file(), request: request(1), fileKey: 1 })
+    const first = out[0]!
+    expect(first.type === 'result' && first.result.width).toBeLessThan(2000)
+    const afterFirst = fullSize()
+    expect(afterFirst).toBeGreaterThan(0)
+
+    const rotated = { ...identityEdit({ width: 2000, height: 2000 }), rotation: 1 as const }
+    await run({
+      type: 'compress',
+      id: 2,
+      file: file(),
+      request: request(2),
+      fileKey: 1,
+      edit: rotated,
+    })
+    expect(fullSize()).toBe(afterFirst) // 沒有再試原尺寸
+    const second = out[1]!
+    expect(second.type === 'result' && second.result.status).toBe('achieved')
+
+    // 目標大小改變 → 不沿用
+    await run({
+      type: 'compress',
+      id: 3,
+      file: file(),
+      request: { ...request(3), targetBytes: 2 * 1024 * 1024 },
+      fileKey: 1,
+      edit: rotated,
+    })
+    expect(fullSize()).toBeGreaterThan(afterFirst)
+
+    // 裁切讓面積改變 → 不沿用（從裁切後的原尺寸開始）
+    const before = codecs.calls.length
+    const crop = {
+      ...identityEdit({ width: 2000, height: 2000 }),
+      crop: { x: 0, y: 0, width: 1500, height: 1500 },
+      output: { width: 1500, height: 1500 },
+    }
+    await run({
+      type: 'compress',
+      id: 4,
+      file: file(),
+      request: request(4),
+      fileKey: 1,
+      edit: crop,
+    })
+    expect(codecs.calls[before]).toMatchObject({ kind: 'encode', width: 1500, height: 1500 })
+  })
 })

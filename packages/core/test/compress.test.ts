@@ -289,3 +289,41 @@ describe('compressToTarget：取消', () => {
     ).rejects.toBeInstanceOf(CancelledError)
   })
 })
+
+// spec 007：編輯後重新壓縮時，從上一次結果的縮放比例開始，不再白做注定失敗的大尺寸嘗試
+describe('compressToTarget：startScale', () => {
+  const big = () => blank(2000, 2000)
+  it('從 startScale 開始：不再嘗試原尺寸，結果與完整流程相同且不超標', async () => {
+    const full = fakeCodecs({})
+    const r1 = await compressToTarget(big(), source(), req(), full, { allowOriginal: false })
+    expect(r1.status).toBe('achieved')
+    expect(r1.width).toBeLessThan(2000)
+    const fullSizeTries = full.calls.filter((c) => c.kind === 'encode' && c.width === 2000)
+    expect(fullSizeTries.length).toBeGreaterThan(0)
+
+    const warm = fakeCodecs({})
+    const r2 = await compressToTarget(big(), source(), req(), warm, {
+      allowOriginal: false,
+      startScale: r1.width / 2000,
+    })
+    expect(warm.calls.filter((c) => c.kind === 'encode' && c.width === 2000)).toHaveLength(0)
+    expect(r2.status).toBe('achieved')
+    expect(r2.bytes.length).toBeLessThanOrEqual(MB)
+    expect([r2.width, r2.height]).toEqual([r1.width, r1.height])
+    expect(warm.calls.length).toBeLessThan(full.calls.length)
+  })
+  it('startScale 的尺寸仍不符合時，繼續縮小直到符合', async () => {
+    const c = fakeCodecs({})
+    const r = await compressToTarget(big(), source(), req(), c, {
+      allowOriginal: false,
+      startScale: 0.95,
+    })
+    expect(r.status).toBe('achieved')
+    expect(r.bytes.length).toBeLessThanOrEqual(MB)
+  })
+  it.each([1, 1.5, 0, -1, Number.NaN])('startScale=%s 不合理時忽略，從原尺寸開始', async (s) => {
+    const c = fakeCodecs({})
+    await compressToTarget(big(), source(), req(), c, { allowOriginal: false, startScale: s })
+    expect(c.calls[0]).toMatchObject({ kind: 'encode', width: 2000 })
+  })
+})

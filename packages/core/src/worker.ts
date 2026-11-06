@@ -69,6 +69,9 @@ export function createHandler(deps: WorkerDeps) {
   let latest = 0
   // 最近一個檔案的解碼結果：每次編輯都會重送同一個檔案，不必再解碼一次 12MP
   let cache: { key: number; img: RawImage } | null = null
+  // 上一次結果的縮放比例（spec 007）：同一個檔案、同樣的設定、同樣的像素面積時沿用，
+  // 編輯後重新壓縮就不必再白做注定失敗的大尺寸嘗試
+  let scaleHint: { key: string; scale: number } | null = null
   return async function handle(msg: WorkerInMessage, post: (m: WorkerOutMessage) => void) {
     if (msg.type === 'to-png') {
       try {
@@ -150,11 +153,28 @@ export function createHandler(deps: WorkerDeps) {
         isAnimated: file.mimeType === 'image/gif' && isAnimatedGif(bytes),
       }
       try {
+        const hintKey =
+          msg.fileKey === undefined
+            ? null
+            : [
+                msg.fileKey,
+                req.targetBytes,
+                req.maxQuality,
+                req.format,
+                img.width * img.height,
+              ].join('|')
+        const startScale =
+          edited && hintKey !== null && scaleHint?.key === hintKey ? scaleHint.scale : undefined
         const result = await compressToTarget(img, { ...source, bytes }, req, deps.codecs, {
           isCancelled,
           // 有編輯時，原始檔不再代表這張影像，不能回傳它
           allowOriginal: !edited,
+          startScale,
         })
+        if (hintKey !== null && result.status === 'achieved') {
+          const scale = Math.max(result.width, result.height) / Math.max(img.width, img.height)
+          scaleHint = scale < 1 ? { key: hintKey, scale } : null
+        }
         if (!isCancelled()) post({ type: 'result', id, source, result })
       } catch (e) {
         if (e instanceof CancelledError) return
