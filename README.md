@@ -1,135 +1,53 @@
-# TinyImg - 圖片壓縮工具
+# TinyImg
 
-一個簡單易用的純前端圖片壓縮工具，可以快速將圖片壓縮到小於 1MB。
+在你的裝置上把圖片壓到目標大小，然後一鍵複製或下載。圖片不會上傳到任何地方。
 
-![TinyImg Logo](https://via.placeholder.com/400x200/667eea/ffffff?text=TinyImg)
+> 專案正在重構：目前是**階段 0（地基）**。接下來的階段會加入畫布編輯器、標註工具和瀏覽器外掛，
+> 路線圖見 [`knowledge/vision.md`](knowledge/vision.md)。
 
-## ✨ 特色功能
+## 功能
 
-- 🖱️ **多種上傳方式**：支援拖曳、點擊選擇、剪貼簿貼上
-- 🗜️ **智慧壓縮**：自動壓縮到指定大小，支援品質調整
-- 📋 **剪貼簿整合**：一鍵複製壓縮後的圖片
-- ⬇️ **快速下載**：直接下載壓縮後的圖片
-- 📱 **響應式設計**：完美支援桌面和行動裝置
-- 🎨 **現代化介面**：美觀的使用者界面和流暢動畫
+- 拖曳、選擇檔案或直接貼上（Ctrl/Cmd + V）放入圖片
+- 自動壓到目標大小（預設 1 MB）：有損格式調整品質，PNG 做色彩量化，還不夠就縮小尺寸
+- 誠實回報結果：「已達成目標」、「原圖已符合目標」或「無法達成目標（最小 X）」，不會悄悄給出超過目標的檔案
+- 輸出格式：自動（有透明背景用 PNG，否則用 JPEG）、JPEG、PNG、WebP
+- 複製到剪貼簿（PNG）或下載
+- 淺色和暗色模式、鍵盤操作、行動裝置
 
-## 🚀 快速開始
+## 開發
 
-### 線上使用
+需要 Node 24（見 `.nvmrc`）。
 
-直接在瀏覽器中開啟 `index.html` 檔案即可使用。
-
-### 本地開發
-
-1. 克隆專案到本地：
-   ```bash
-   git clone <your-repo-url>
-   cd tinyimg
-   ```
-
-2. 使用簡易伺服器運行（可選）：
-   ```bash
-   # 使用 Node.js serve
-   npx serve .
-   
-   # 或使用 Python
-   python -m http.server 8000
-   ```
-
-3. 在瀏覽器中開啟 `http://localhost:8000`
-
-## 💡 使用方法
-
-### 上傳圖片
-- **拖曳上傳**：將圖片檔案拖曳到上傳區域
-- **點擊選擇**：點擊「選擇檔案」按鈕
-- **剪貼簿貼上**：使用 `Ctrl+V` (Windows) 或 `Cmd+V` (Mac) 貼上圖片
-
-### 調整設定
-- **品質**：調整壓縮品質 (10%-100%)
-- **目標大小**：設定目標檔案大小 (KB)
-- **輸出格式**：選擇 JPEG、PNG 或 WebP 格式
-
-### 取得結果
-- **複製到剪貼簿**：點擊「複製到剪貼簿」按鈕
-- **下載檔案**：點擊「下載」按鈕儲存到本地
-
-## 🛠️ 技術規格
-
-### 技術棧
-- **HTML5** - 結構化標記
-- **CSS3** - 現代化樣式和動畫
-- **JavaScript (ES6+)** - 核心功能邏輯
-- **Bootstrap 5** - UI 框架
-- **Bootstrap Icons** - 圖示系統
-
-### 支援格式
-- **輸入格式**：JPEG, PNG, WebP, GIF
-- **輸出格式**：JPEG, PNG, WebP
-
-### 瀏覽器支援
-- Chrome 76+
-- Firefox 63+
-- Safari 13.1+
-- Edge 79+
-
-## 📁 專案結構
-
-```
-tinyimg/
-├── index.html          # 主要 HTML 檔案
-├── styles.css          # 樣式檔案  
-├── script.js           # JavaScript 邏輯
-├── AGENTS.md          # AI 開發記錄
-└── README.md          # 專案說明 (本檔案)
+```bash
+npm ci
+npm run dev          # http://localhost:5173/tinyimg/
 ```
 
-## 🔧 核心功能
+| 指令 | 用途 |
+|---|---|
+| `npm run typecheck` | TypeScript 與 svelte-check |
+| `npm run lint` / `npm run format:check` | ESLint、Prettier |
+| `npm test` | 所有單元與整合測試 |
+| `npm run test:coverage` | core 覆蓋率（門檻 90%） |
+| `npm run build` / `npm run size` | 建置，並檢查首次載入 JS ≤ 200 KB（gzip） |
+| `npm run e2e` | Playwright E2E（第一次執行前先 `npx playwright install chromium`） |
 
-### 圖片壓縮演算法
-1. **尺寸優化**：大圖片自動縮放到合適尺寸
-2. **品質調整**：使用 Canvas API 進行品質壓縮
-3. **漸進式壓縮**：自動調整參數直到達到目標大小
-4. **格式轉換**：支援多種格式之間的轉換
+開發採用 TDD 和 [Spec Kit](https://github.com/github/spec-kit) 的規格流程。規則見
+[`.specify/memory/constitution.md`](.specify/memory/constitution.md)，專案背後的「為什麼」見 [`knowledge/`](knowledge/)。
 
-### 使用者體驗
-- **即時預覽**：同時顯示原始和壓縮後的圖片
-- **詳細資訊**：顯示檔案大小、尺寸、壓縮率
-- **進度指示**：清楚的處理進度顯示
-- **通知系統**：友善的操作反饋
+## 專案結構
 
-## 🎯 使用場景
+```text
+packages/core/   圖片處理核心：壓到目標大小、量化、Worker 協定（不依賴 UI）
+apps/web/        網頁版（Svelte 5 + Vite）
+specs/           Spec Kit 規格、計畫與任務
+knowledge/       專案知識庫（原則、願景、經驗、決策歷史）
+```
 
-- **網站開發**：優化網站圖片以提升載入速度
-- **社群媒體**：快速壓縮圖片以符合平台限制
-- **電子郵件**：減少附件大小
-- **儲存優化**：節省本地和雲端儲存空間
+## 部署
 
-## 🚧 已知限制
+GitHub Actions：每個 PR 都會跑完整檢查（`ci.yml`）；合併到 `main` 時自動部署到 GitHub Pages（`pages.yml`）。
 
-- 剪貼簿功能需要 HTTPS 或 localhost 環境
-- 處理超大圖片時可能需要較長時間
-- 某些舊版瀏覽器可能不支援所有功能
+## 隱私
 
-## 🤝 貢獻指南
-
-歡迎提交 Pull Request 或 Issue！
-
-### 開發準則
-- 保持純前端實作
-- 使用 CDN 版本的第三方函式庫
-- 確保程式碼可讀性和註解完整
-- 測試跨瀏覽器相容性
-
-## 📄 授權條款
-
-MIT License - 詳見 LICENSE 檔案
-
-## 🙏 鳴謝
-
-- [Bootstrap](https://getbootstrap.com/) - UI 框架
-- [Bootstrap Icons](https://icons.getbootstrap.com/) - 圖示系統
-
----
-
-**Made with ❤️ for the web community**
+所有處理都在瀏覽器中完成：不上傳圖片、沒有追蹤，執行時也不會載入任何遠端程式碼。

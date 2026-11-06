@@ -115,10 +115,11 @@ description: "階段 0：地基 的任務清單"
 
 **Independent Test**: 推送一個讓測試故意失敗的 commit，CI 會失敗；合併到 main 後，Pages 會更新。
 
-- [ ] T049 [P] [US3] 寫 `scripts/check-size.mjs`：從 `apps/web/dist/.vite/manifest.json` 找出入口 chunk 和它的靜態 import，加總 gzip 後的大小（不含 `.wasm` 和動態 import），超過 200 × 1024 bytes 就以 exit 1 結束；再寫 `scripts/check-size.test.mjs`，先證明超過預算時會失敗
-- [ ] T050 [US3] 建立 `.github/workflows/ci.yml`：在 pull_request 和 push 時觸發，使用 Node 24，`npm ci` 後依序執行 lint、format:check、typecheck、test:coverage、build、size，接著安裝 Playwright chromium 並跑 e2e；失敗時上傳 playwright-report
-- [ ] T051 [US3] 建立 `.github/workflows/pages.yml`：在 push 到 main 和 workflow_dispatch 時觸發；權限設為 `pages: write` 與 `id-token: write`；用 `concurrency: pages`；建置 `apps/web` 後執行 `actions/upload-pages-artifact`，再用 `actions/deploy-pages`
+- [X] T049 [P] [US3] 寫 `scripts/check-size.mjs`：從 `apps/web/dist/.vite/manifest.json` 找出入口 chunk 和它的靜態 import，加總 gzip 後的大小（不含 `.wasm` 和動態 import），超過 200 × 1024 bytes 就以 exit 1 結束；再寫 `scripts/check-size.test.mjs`，先證明超過預算時會失敗
+- [X] T050 [US3] 建立 `.github/workflows/ci.yml`：在 pull_request 和 push 時觸發，使用 Node 24，`npm ci` 後依序執行 lint、format:check、typecheck、test:coverage、build、size，接著安裝 Playwright chromium 並跑 e2e；失敗時上傳 playwright-report
+- [X] T051 [US3] 建立 `.github/workflows/pages.yml`：在 push 到 main 和 workflow_dispatch 時觸發；權限設為 `pages: write` 與 `id-token: write`；用 `concurrency: pages`；建置 `apps/web` 後執行 `actions/upload-pages-artifact`，再用 `actions/deploy-pages`
 - [ ] T052 [US3] 用 `actionlint` 驗證兩個 workflow 檔（如果本機沒有，就用 `npx` 或 docker 執行）；把「Pages Source 要設為 GitHub Actions」以及 push 的需求記錄在 draft，等使用者確認
+  - 進度：YAML 結構已用解析器確認；需要等待使用者確認的事項已記錄在 `knowledge/draft/2026-11-06-對外發佈需要使用者確認.md`。**未完成**：安裝 actionlint（`go install` 到暫存目錄）被權限系統拒絕，等使用者處理。
 
 **Checkpoint**: CI/CD 設定完成，等使用者確認對外動作後就會啟用。
 
@@ -126,7 +127,7 @@ description: "階段 0：地基 的任務清單"
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T053 [P] 改寫 `README.md`：說明新架構、開發指令和部署網址
+- [X] T053 [P] 改寫 `README.md`：說明新架構、開發指令和部署網址
 - [ ] T054 [P] 依 quickstart.md 從頭跑一遍所有驗證情境，並在 quickstart.md 標註實際結果
 - [ ] T055 把 knowledge/vision.md 階段 0 的成功標準與實際狀態對照，提供給 `/knowie-judge` 收尾
 
