@@ -128,8 +128,8 @@ description: "階段 0：地基 的任務清單"
 ## Phase 6: Polish & Cross-Cutting
 
 - [X] T053 [P] 改寫 `README.md`：說明新架構、開發指令和部署網址
-- [ ] T054 [P] 依 quickstart.md 從頭跑一遍所有驗證情境，並在 quickstart.md 標註實際結果
-- [ ] T055 把 knowledge/vision.md 階段 0 的成功標準與實際狀態對照，提供給 `/knowie-judge` 收尾
+- [X] T054 [P] 依 quickstart.md 從頭跑一遍所有驗證情境，並在 quickstart.md 標註實際結果
+- [X] T055 把 knowledge/vision.md 階段 0 的成功標準與實際狀態對照，提供給 `/knowie-judge` 收尾
 
 ---
 

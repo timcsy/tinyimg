@@ -29,3 +29,19 @@ npm run dev        # 啟動 apps/web，開啟 http://localhost:5173/tinyimg/
 
 ## 發佈
 - 開 PR 會觸發 `ci.yml`；合併到 `main` 會觸發 `pages.yml`，部署到 `https://timcsy.github.io/tinyimg/`。
+
+## 實際驗證結果（2026-11-06，本機 macOS、Node 24.20）
+
+本機依 `ci.yml` 的順序完整模擬（`npm ci` → lint → format → typecheck → coverage → test → build → size → e2e）：
+
+| 項目 | 結果 |
+|---|---|
+| lint、format、typecheck | 通過（svelte-check 0 錯誤、0 警告） |
+| core 測試 | 106 個通過；覆蓋率 statements 97.89%、branches 91.16%、functions 97.91%、lines 99.37% |
+| SC-001、SC-002 | 整合測試通過；10 張截圖至少 9 張達成，且多數需要量化或縮尺寸（測試具鑑別力） |
+| web 單元測試、size 腳本測試 | 20 個、5 個通過 |
+| 首次載入 JS | 19.7 KB（gzip）／預算 200 KB |
+| E2E | 20 個通過（Chromium） |
+
+尚未驗證：GitHub 上實際執行 CI 與 Pages 部署（需要 push，見 `knowledge/draft/2026-11-06-對外發佈需要使用者確認.md`）；
+actionlint；Firefox 與 Safari（階段 0 的 E2E 只跑 Chromium）。
