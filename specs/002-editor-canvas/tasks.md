@@ -14,16 +14,16 @@ description: "002 非破壞式編輯與畫布介面 的任務清單"
 
 ## Phase 1: Setup
 
-- [ ] T001 建立 `packages/editor/`：`package.json`（name 為 `@tinyimg/editor`，依賴 `@tinyimg/core`，exports 指向 `./src/index.ts`）、`tsconfig.json`、`vitest.config.ts`（Node 環境；覆蓋率門檻 90%）
+- [X] T001 建立 `packages/editor/`：`package.json`（name 為 `@tinyimg/editor`，依賴 `@tinyimg/core`，exports 指向 `./src/index.ts`）、`tsconfig.json`、`vitest.config.ts`（Node 環境；覆蓋率門檻 90%）
 - [ ] T002 在 `apps/web` 加入元件測試的設定：安裝 `@vitest/browser-playwright@5.1` 與 `vitest-browser-svelte@3.1`；新增 `apps/web/vitest.components.config.ts`（browser mode，使用 Chromium，include 為 `test/components/**/*.test.ts`）與 script `test:components`；根目錄的 `verify` 和 `ci.yml` 也要加入這一步
 - [ ] T003 讓 `apps/web` 依賴 `@tinyimg/editor`；確認 typecheck、lint、build 都通過
 
 ## Phase 2: Foundational（core 的編輯像素運算）
 
-- [ ] T004 [P] 在 `packages/core/test/edit.test.ts` 寫測試：`identityEdit`；`orientedSize`（rotation 為奇數時寬高互換）；`applyEdit` 的裁切、旋轉 1/2/3 次、flipX，以已知像素位置驗證，例如 400×300 旋轉一次後，原本左上的像素出現在右上；輸出尺寸與 oriented 不同時呼叫 resize；不修改輸入；`mapPoint`
-- [ ] T005 實作 `packages/core/src/edit.ts`，讓 T004 通過，並從 `index.ts` 匯出
-- [ ] T006 在 `packages/core/test/worker.test.ts` 加測試：compress 帶有 `edit` 時，結果尺寸等於 `edit.output`；再到 `client.test.ts` 加測試：`compress(file, req, edit)` 會傳送 edit
-- [ ] T007 修改 `packages/core/src/worker.ts` 與 `client.ts`，讓 T006 通過
+- [X] T004 [P] 在 `packages/core/test/edit.test.ts` 寫測試：`identityEdit`；`orientedSize`（rotation 為奇數時寬高互換）；`applyEdit` 的裁切、旋轉 1/2/3 次、flipX，以已知像素位置驗證，例如 400×300 旋轉一次後，原本左上的像素出現在右上；輸出尺寸與 oriented 不同時呼叫 resize；不修改輸入；`mapPoint`
+- [X] T005 實作 `packages/core/src/edit.ts`，讓 T004 通過，並從 `index.ts` 匯出
+- [X] T006 在 `packages/core/test/worker.test.ts` 加測試：compress 帶有 `edit` 時，結果尺寸等於 `edit.output`；再到 `client.test.ts` 加測試：`compress(file, req, edit)` 會傳送 edit
+- [X] T007 修改 `packages/core/src/worker.ts` 與 `client.ts`，讓 T006 通過
 
 ---
 
@@ -31,16 +31,16 @@ description: "002 非破壞式編輯與畫布介面 的任務清單"
 
 ### Tests（先寫，確認失敗）
 
-- [ ] T008 [P] [US2] 寫 `packages/editor/test/ops.test.ts`：`applyOp` 處理每種 Op 後的 EditState；裁切座標以目前畫面為準，反向映射回原圖並取整數；旋轉 4 次或翻轉 2 次會回到原狀；resize 範圍為 1 px 到 oriented 的 4 倍，超出範圍時丟出 RangeError；reset 回到 identity
-- [ ] T009 [P] [US2] 寫 `packages/editor/test/property.test.ts`：寫一個參考實作，逐步在 RawImage 上套用每個 Op（不含 resize）。用固定種子產生 200 組、長度 1 到 50 的隨機序列，驗證 `applyEdit(img, state)` 與參考實作逐像素相同（SC-002）
-- [ ] T010 [P] [US2] 寫 `packages/editor/test/document.test.ts`：push 會截掉 redo；undo、redo 的邊界；上限 100 步；undo 到底等於 identity、redo 到底等於最終狀態（SC-003，用隨機序列驗證）；`deserialize(serialize(doc))` 與原文件等價；不合法的 JSON 丟出錯誤
-- [ ] T011 [P] [US2] 寫 `packages/editor/test/crop.test.ts`：依比例限制拖曳角落（1:1 維持正方形）；夾在圖片範圍內；最小 1×1；鍵盤移動 1 px，加 Shift 為 10 px，加 Alt 為調整大小
+- [X] T008 [P] [US2] 寫 `packages/editor/test/ops.test.ts`：`applyOp` 處理每種 Op 後的 EditState；裁切座標以目前畫面為準，反向映射回原圖並取整數；旋轉 4 次或翻轉 2 次會回到原狀；resize 範圍為 1 px 到 oriented 的 4 倍，超出範圍時丟出 RangeError；reset 回到 identity
+- [X] T009 [P] [US2] 寫 `packages/editor/test/property.test.ts`：寫一個參考實作，逐步在 RawImage 上套用每個 Op（不含 resize）。用固定種子產生 200 組、長度 1 到 50 的隨機序列，驗證 `applyEdit(img, state)` 與參考實作逐像素相同（SC-002）
+- [X] T010 [P] [US2] 寫 `packages/editor/test/document.test.ts`：push 會截掉 redo；undo、redo 的邊界；上限 100 步；undo 到底等於 identity、redo 到底等於最終狀態（SC-003，用隨機序列驗證）；`deserialize(serialize(doc))` 與原文件等價；不合法的 JSON 丟出錯誤
+- [X] T011 [P] [US2] 寫 `packages/editor/test/crop.test.ts`：依比例限制拖曳角落（1:1 維持正方形）；夾在圖片範圍內；最小 1×1；鍵盤移動 1 px，加 Shift 為 10 px，加 Alt 為調整大小
 
 ### Implementation
 
-- [ ] T012 [US2] 實作 `packages/editor/src/ops.ts`，讓 T008、T009 通過
-- [ ] T013 [US2] 實作 `packages/editor/src/document.ts`，讓 T010 通過
-- [ ] T014 [P] [US2] 實作 `packages/editor/src/crop.ts`，讓 T011 通過
+- [X] T012 [US2] 實作 `packages/editor/src/ops.ts`，讓 T008、T009 通過
+- [X] T013 [US2] 實作 `packages/editor/src/document.ts`，讓 T010 通過
+- [X] T014 [P] [US2] 實作 `packages/editor/src/crop.ts`，讓 T011 通過
 - [ ] T015 [US2] 寫元件測試 `apps/web/test/components/CropOverlay.test.ts`（拖曳控制點、鍵盤、Enter、Esc）與 `Toolbar.test.ts`（按鈕名稱、disabled 狀態、方向鍵移動焦點），確認失敗
 - [ ] T016 [US2] 實作 `apps/web/src/lib/editor.svelte.ts`（文件加 runes，編輯後觸發 workspace 以 edit 重新壓縮）、`EditorCanvas.svelte`（以預覽點陣圖依 EditState 算繪）、`CropOverlay.svelte`、`Toolbar.svelte`、`ResizeDialog.svelte`，讓 T015 通過
 - [ ] T017 [US2] 寫 E2E `apps/web/e2e/editor.spec.ts`：裁切後的 output-size 正確、旋轉後寬高互換、3 次復原回到原尺寸、全部還原後可以再復原、編輯後的壓縮結果尺寸與 output-size 一致

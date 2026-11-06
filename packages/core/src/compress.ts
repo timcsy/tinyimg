@@ -28,6 +28,8 @@ export interface CompressOptions {
   isCancelled?: () => boolean
   /** 縮尺寸時最長邊的下限，預設 320 */
   minEdge?: number
+  /** false 時不會回傳原始檔（例如影像已被編輯，原始檔不再代表它） */
+  allowOriginal?: boolean
 }
 
 /**
@@ -114,7 +116,12 @@ export async function compressToTarget(
 
   // 原圖本來就符合目標：重新編碼不比原圖小時，保留原圖
   const sameFormat = req.format === 'auto' || MIME[format] === source.mimeType
-  if (source.byteSize <= target && sameFormat && warnings.length === 0) {
+  if (
+    opts.allowOriginal !== false &&
+    source.byteSize <= target &&
+    sameFormat &&
+    warnings.length === 0
+  ) {
     const reencoded = first.fit ?? first.smallest
     if (reencoded.bytes.length >= source.byteSize) {
       return {

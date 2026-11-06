@@ -138,4 +138,16 @@ describe('createCompressor', () => {
     await expect(p).resolves.toEqual({ superseded: true })
     expect(FakeWorker.instances[0]!.terminated).toBe(true)
   })
+  it('compress 可帶 edit 並傳給 worker', async () => {
+    const c = make()
+    const edit = {
+      crop: { x: 0, y: 0, width: 1, height: 1 },
+      rotation: 0 as const,
+      flipX: true,
+      output: { width: 1, height: 1 },
+    }
+    void c.compress(blob(), req, edit)
+    await flush()
+    expect(FakeWorker.instances[0]!.sent[0]).toMatchObject({ edit })
+  })
 })

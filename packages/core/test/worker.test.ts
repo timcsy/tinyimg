@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createHandler, type WorkerOutMessage } from '../src/worker'
 import { fakeCodecs } from './fixtures/fakeCodecs'
 import { blank, gifBytes } from './fixtures/generate'
+import { identityEdit } from '../src/edit'
 
 const request = (id: number) => ({
   id,
@@ -114,5 +115,32 @@ describe('worker handler', () => {
     const { out, run } = setup({ toPng: async () => Promise.reject(new Error('x')) })
     await run({ type: 'to-png', id: 9, bytes: new ArrayBuffer(4), mimeType: 'image/jpeg' })
     expect(out[0]).toMatchObject({ type: 'error', id: 9, error: { code: 'internal' } })
+  })
+  it('帶有 edit 時，結果尺寸等於 edit.output', async () => {
+    const { out, run } = setup()
+    const edit = {
+      ...identityEdit({ width: 1000, height: 1000 }),
+      rotation: 1 as const,
+      crop: { x: 0, y: 0, width: 400, height: 200 },
+      output: { width: 200, height: 400 },
+    }
+    await run({ type: 'compress', id: 1, file: file(), request: request(1), edit })
+    const m = out[0]!
+    expect(m.type === 'result' && [m.result.width, m.result.height]).toEqual([200, 400])
+    expect(m.type === 'result' && [m.source.width, m.source.height]).toEqual([1000, 1000])
+  })
+  it('有編輯時，絕不回傳未編輯的原始檔（即使原圖已符合目標）', async () => {
+    const { out, run } = setup({ decode: async () => blank(100, 100) })
+    const small = new Uint8Array(500)
+    const edit = { ...identityEdit({ width: 100, height: 100 }), flipX: true }
+    await run({
+      type: 'compress',
+      id: 1,
+      file: { name: 'a.jpg', mimeType: 'image/jpeg', bytes: small.buffer as ArrayBuffer },
+      request: request(1),
+      edit,
+    })
+    const m = out[0]!
+    expect(m.type === 'result' && m.result.status).not.toBe('original-fits')
   })
 })

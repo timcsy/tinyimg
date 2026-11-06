@@ -1,5 +1,6 @@
 import { hasAlpha, isAnimatedGif } from './analyze'
 import { compressToTarget } from './compress'
+import { applyEdit, identityEdit, type EditState } from './edit'
 import { validateRequest } from './validate'
 import {
   CancelledError,
@@ -18,6 +19,8 @@ export type WorkerInMessage =
       id: number
       file: { name: string; mimeType: string; bytes: ArrayBuffer }
       request: CompressRequest
+      /** 選填：先套用編輯再壓縮 */
+      edit?: EditState
     }
   | { type: 'to-png'; id: number; bytes: ArrayBuffer; mimeType: string }
 
@@ -80,19 +83,31 @@ export function createHandler(deps: WorkerDeps) {
       return fail(ERR.decode)
     }
     if (isCancelled()) return
+    const original = { width: img.width, height: img.height }
+    const edited =
+      msg.edit !== undefined && JSON.stringify(msg.edit) !== JSON.stringify(identityEdit(original))
+    try {
+      if (edited) img = await applyEdit(img, msg.edit!, deps.codecs.resize?.bind(deps.codecs))
+    } catch {
+      return fail(ERR.internal)
+    }
+    if (isCancelled()) return
 
     const source: SourceInfo = {
       name: file.name,
       mimeType: file.mimeType,
       byteSize: bytes.length,
-      width: img.width,
-      height: img.height,
+      width: original.width,
+      height: original.height,
+      // 透明度以編輯後的影像為準（例如裁掉透明區域後就不需要 PNG）
       hasAlpha: hasAlpha(img),
       isAnimated: file.mimeType === 'image/gif' && isAnimatedGif(bytes),
     }
     try {
       const result = await compressToTarget(img, { ...source, bytes }, req, deps.codecs, {
         isCancelled,
+        // 有編輯時，原始檔不再代表這張影像，不能回傳它
+        allowOriginal: !edited,
       })
       if (!isCancelled()) post({ type: 'result', id, source, result })
     } catch (e) {

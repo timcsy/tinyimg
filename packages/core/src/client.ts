@@ -1,3 +1,4 @@
+import type { EditState } from './edit'
 import type { CompressError, CompressRequest, CompressResult, SourceInfo } from './types'
 import type { WorkerInMessage, WorkerOutMessage } from './worker'
 
@@ -10,7 +11,7 @@ export interface WorkerLike {
 export type CompressOutcome = { source: SourceInfo; result: CompressResult } | { superseded: true }
 
 export interface Compressor {
-  compress(file: Blob, req: Omit<CompressRequest, 'id'>): Promise<CompressOutcome>
+  compress(file: Blob, req: Omit<CompressRequest, 'id'>, edit?: EditState): Promise<CompressOutcome>
   toPng(bytes: Uint8Array, mimeType: string): Promise<Uint8Array>
   dispose(): void
 }
@@ -76,7 +77,7 @@ export function createCompressor(
   }
 
   return {
-    compress(file, req) {
+    compress(file, req, edit) {
       if (currentCompress !== null) supersede(currentCompress)
       const id = nextId++
       currentCompress = id
@@ -93,6 +94,7 @@ export function createCompressor(
               id,
               file: { name, mimeType: file.type, bytes },
               request: { ...req, id },
+              ...(edit ? { edit } : {}),
             },
             [bytes],
           )

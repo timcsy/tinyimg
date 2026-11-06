@@ -12,6 +12,11 @@
     "e2e": "playwright test --grep-invert @serial && playwright test --grep @serial --workers=1"
   },
   "dependencies": {
-    "@tinyimg/core": "*"
+    "@tinyimg/core": "*",
+    "@tinyimg/editor": "^0.0.0"
+  },
+  "devDependencies": {
+    "@vitest/browser-playwright": "5.1",
+    "vitest-browser-svelte": "3.1"
   }
 }
