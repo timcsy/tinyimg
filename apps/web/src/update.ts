@@ -6,7 +6,7 @@
  *
  * 不能用「事件到達時有沒有 controller」來判斷：Firefox 會把 updatefound 延後送到頁面，
  * 到達時第一次安裝的 SW 早已啟用並接管頁面（2026-11-07 在 E2E 中用 performance.mark 觀察到，
- * 見 knowledge/draft/2026-11-07-Firefox誤報有新版本.md）。
+ * 見 knowledge/episodes/2026-11-07-Firefox誤報有新版本.md）。
  */
 export function watchForUpdate(
   container: ServiceWorkerContainer,
