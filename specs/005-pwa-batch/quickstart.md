@@ -22,3 +22,5 @@
 
 `npm run verify` 全綠（exit 0）：core 149、editor 56、元件 33、網頁版平行 E2E 123、依序 E2E 18（含 Firefox 效能）、外掛 E2E 8，首次載入 JS 83.3 KB。
 先前的 core 失敗與 Firefox 效能失敗都沒有重現。Firefox 效能測試另外單獨跑了 3 輪，9 個全部通過（負載 59–92；SC-003 2.3–4.0 秒，SC-007 2.4–3.0 秒，SC-006 最慢 25ms）。
+
+> 更正（2026-11-06 稍晚）：之後在低負載時只跑 Firefox 效能測試也會失敗，「被負載主導」的說法不成立，原因不明。見 `knowledge/draft/2026-11-06-SC-003在Firefox與WebKit的預算.md`。
