@@ -24,3 +24,5 @@ apps/web/e2e/fixtures/generated/
 # Vitest browser mode 失敗時的截圖
 __screenshots__/
 .vitest/
+apps/extension/dist-e2e/
+apps/extension/*.zip

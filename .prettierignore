@@ -13,3 +13,4 @@ knowledge
 AGENTS.md
 *.md
 .vscode
+dist-e2e

@@ -1,0 +1,16 @@
+.ext-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 16px 0;
+  font-size: 0.9rem;
+}
+.ext-notice {
+  margin: 0.75rem 16px 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--warn);
+  border-radius: var(--radius);
+  color: var(--text);
+}
+.ext-notice p {
+  margin: 0 0 0.5rem;
+}

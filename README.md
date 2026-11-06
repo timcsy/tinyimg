@@ -45,6 +45,14 @@ specs/           Spec Kit 規格、計畫與任務
 knowledge/       專案知識庫（原則、願景、經驗、決策歷史）
 ```
 
+## 瀏覽器外掛（Chrome、Edge）
+
+在任何網頁按 Ctrl/Cmd+Shift+S 截圖（或框選區域、在圖片上按右鍵「用 TinyImg 編輯」），直接在側邊欄標註與壓縮。
+
+- 開發：`npm run build -w @tinyimg/extension`，在 `chrome://extensions` 啟用開發人員模式，選「載入未封裝項目」並選擇 `apps/extension/dist`。
+- 權限與用途：[`apps/extension/PERMISSIONS.md`](apps/extension/PERMISSIONS.md)。
+- 發佈：推送 `vX.Y.Z` tag 後，GitHub Actions 會產生 `tinyimg-extension-X.Y.Z.zip` 並附在 Release 上（`release.yml`）。
+
 ## 部署
 
 GitHub Actions：每個 PR 都會跑完整檢查（`ci.yml`）；合併到 `main` 時自動部署到 GitHub Pages（`pages.yml`）。
