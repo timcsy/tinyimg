@@ -86,24 +86,24 @@ description: "階段 0：地基 的任務清單"
 
 - [X] T032 [P] [US2] 在 `apps/web/test/format.test.ts` 寫測試：`formatBytes`；`savingLabel` 在結果較小時顯示「節省 X%」，較大時顯示「增加 X%」，不會出現負數；`downloadName('a.png', 'image/jpeg')` 回傳 `a_compressed.jpg`，貼上的圖片名稱為 `pasted-image_compressed.*`
 - [X] T033 [P] [US2] 在 `apps/web/test/store.test.ts` 寫測試（對象為 `src/lib/workspace.ts`）：工作區狀態機依 data-model.md 的狀態轉換運作，superseded 的結果會被丟棄
-- [ ] T034 [P] [US2] 建立 `apps/web/e2e/fixtures/`：用 core 的產生器輸出 photo.jpg、screenshot.png、transparent.png、anim.gif、not-image.txt、corrupt.png；並設定 `apps/web/playwright.config.ts`（Chromium，webServer 跑 `vite preview`，授予 clipboard 權限）
-- [ ] T035 [P] [US2] 寫 `apps/web/e2e/upload.spec.ts`：用選檔、拖曳（以 DataTransfer 模擬）、貼上（以 ClipboardEvent 模擬）各放入一次，都會顯示 `result-status`；連續選兩次同一個檔案都會處理
-- [ ] T036 [P] [US2] 寫 `apps/web/e2e/settings.spec.ts`：改變品質上限、目標大小、格式後結果會更新；目標大小填 0 或空白時出現 `role=alert`；目標 50 KB 時顯示「無法達成目標」，而且下載按鈕仍可使用
-- [ ] T037 [P] [US2] 寫 `apps/web/e2e/output.spec.ts`：複製後，讀回剪貼簿是 image/png；下載的檔名符合 `*_compressed.jpg`；透明圖選 JPEG 時顯示 warnings
-- [ ] T038 [P] [US2] 寫 `apps/web/e2e/errors.spec.ts`：放入 not-image.txt 和 corrupt.png，都在 30 秒內出現 `data-testid="error"`；放入 anim.gif 時顯示動畫未保留的警告
-- [ ] T039 [P] [US2] 寫 `apps/web/e2e/a11y.spec.ts`：用 axe 檢查初始狀態和有結果的狀態，零違規；只用鍵盤就能開啟檔案選擇；`prefers-color-scheme: dark` 時背景色會改變；360 px 寬時沒有水平捲軸
+- [X] T034 [P] [US2] 建立 `apps/web/e2e/fixtures/`：用 core 的產生器輸出 photo.jpg、screenshot.png、transparent.png、anim.gif、not-image.txt、corrupt.png；並設定 `apps/web/playwright.config.ts`（Chromium，webServer 跑 `vite preview`，授予 clipboard 權限）
+- [X] T035 [P] [US2] 寫 `apps/web/e2e/upload.spec.ts`：用選檔、拖曳（以 DataTransfer 模擬）、貼上（以 ClipboardEvent 模擬）各放入一次，都會顯示 `result-status`；連續選兩次同一個檔案都會處理
+- [X] T036 [P] [US2] 寫 `apps/web/e2e/settings.spec.ts`：改變品質上限、目標大小、格式後結果會更新；目標大小填 0 或空白時出現 `role=alert`；目標 50 KB 時顯示「無法達成目標」，而且下載按鈕仍可使用
+- [X] T037 [P] [US2] 寫 `apps/web/e2e/output.spec.ts`：複製後，讀回剪貼簿是 image/png；下載的檔名符合 `*_compressed.jpg`；透明圖選 JPEG 時顯示 warnings
+- [X] T038 [P] [US2] 寫 `apps/web/e2e/errors.spec.ts`：放入 not-image.txt 和 corrupt.png，都在 30 秒內出現 `data-testid="error"`；放入 anim.gif 時顯示動畫未保留的警告
+- [X] T039 [P] [US2] 寫 `apps/web/e2e/a11y.spec.ts`：用 axe 檢查初始狀態和有結果的狀態，零違規；只用鍵盤就能開啟檔案選擇；`prefers-color-scheme: dark` 時背景色會改變；360 px 寬時沒有水平捲軸
 
 ### Implementation for User Story 2
 
-- [ ] T040 [P] [US2] 實作 `apps/web/src/lib/format.ts` 與 `apps/web/src/lib/strings.ts`（所有介面文字集中於此），讓 T032 通過
-- [ ] T041 [US2] 實作 `apps/web/src/lib/workspace.ts`（與框架無關的狀態機，元件以 onChange 同步到 runes），以 `createCompressor` 建立 compressor，設定變更時 debounce 300 ms，讓 T033 通過
-- [ ] T042 [P] [US2] 實作 `apps/web/src/app.css`：在 `:root` 定義設計 token，加上 `prefers-color-scheme: dark`，並提供 focus 樣式
-- [ ] T043 [P] [US2] 實作 `apps/web/src/lib/DropZone.svelte`：role=button、鍵盤操作、拖曳、`file-input` 選完後重設 value；在 window 上監聽 paste
-- [ ] T044 [P] [US2] 實作 `apps/web/src/lib/Settings.svelte`：品質上限 10–100（預設 80）、目標大小 50–10240 KB（預設 1024）、格式選單（自動、JPEG、PNG、WebP，預設自動）；不合法時顯示 alert
-- [ ] T045 [P] [US2] 實作 `apps/web/src/lib/Comparison.svelte`：並排預覽，顯示 original-size、result-size、saving、result-status、warnings；處理中加上 aria-busy；預覽的 Object URL 在替換或卸載時 revoke
-- [ ] T046 [P] [US2] 實作 `apps/web/src/lib/Actions.svelte` 與 `apps/web/src/lib/Toast.svelte`：複製時用 `ClipboardItem({'image/png': promise})`，promise 經由 `compressor.toPng` 取得；不支援時顯示通知；下載使用 `downloadName`
-- [ ] T047 [US2] 在 `apps/web/src/App.svelte` 組裝所有元件，讓 T035 到 T039 全部通過
-- [ ] T048 [US2] 移除舊版的 `index.html`、`script.js`、`styles.css`（內容仍可從 git `b655abb` 取得）
+- [X] T040 [P] [US2] 實作 `apps/web/src/lib/format.ts` 與 `apps/web/src/lib/strings.ts`（所有介面文字集中於此），讓 T032 通過
+- [X] T041 [US2] 實作 `apps/web/src/lib/workspace.ts`（與框架無關的狀態機，元件以 onChange 同步到 runes），以 `createCompressor` 建立 compressor，設定變更時 debounce 300 ms，讓 T033 通過
+- [X] T042 [P] [US2] 實作 `apps/web/src/app.css`：在 `:root` 定義設計 token，加上 `prefers-color-scheme: dark`，並提供 focus 樣式
+- [X] T043 [P] [US2] 實作 `apps/web/src/lib/DropZone.svelte`：role=button、鍵盤操作、拖曳、`file-input` 選完後重設 value；在 window 上監聽 paste
+- [X] T044 [P] [US2] 實作 `apps/web/src/lib/Settings.svelte`：品質上限 10–100（預設 80）、目標大小 50–10240 KB（預設 1024）、格式選單（自動、JPEG、PNG、WebP，預設自動）；不合法時顯示 alert
+- [X] T045 [P] [US2] 實作 `apps/web/src/lib/Comparison.svelte`：並排預覽，顯示 original-size、result-size、saving、result-status、warnings；處理中加上 aria-busy；預覽的 Object URL 在替換或卸載時 revoke
+- [X] T046 [P] [US2] 實作 `apps/web/src/lib/Actions.svelte` 與 `apps/web/src/lib/Toast.svelte`：複製時用 `ClipboardItem({'image/png': promise})`，promise 經由 `compressor.toPng` 取得；不支援時顯示通知；下載使用 `downloadName`
+- [X] T047 [US2] 在 `apps/web/src/App.svelte` 組裝所有元件，讓 T035 到 T039 全部通過
+- [X] T048 [US2] 移除舊版的 `index.html`、`script.js`、`styles.css`（內容仍可從 git `b655abb` 取得）
 
 **Checkpoint**: 網頁版功能和舊版對等，E2E 全部通過。
 

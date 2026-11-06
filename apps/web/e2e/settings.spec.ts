@@ -27,7 +27,7 @@ test('目標大小不合法時顯示提示', async ({ page }) => {
 test('無法達成時明確顯示，仍可下載', async ({ page }) => {
   await page.getByLabel('目標大小（KB）').fill('50')
   await page.getByLabel('輸出格式').selectOption('png')
-  await choose(page, 'screenshot.png')
+  await choose(page, 'noise.png')
   await expect(page.getByTestId('result-status')).toContainText('無法達成目標', { timeout: 30_000 })
   await expect(page.getByRole('button', { name: '下載' })).toBeEnabled()
 })

@@ -14,8 +14,6 @@ export default tseslint.config(
       '.specify/**',
       '.claude/**',
       '.agents/**',
-      // 舊版 v0，T048 移除
-      'script.js',
     ],
   },
   js.configs.recommended,
@@ -27,6 +25,8 @@ export default tseslint.config(
   {
     files: ['**/*.svelte', '**/*.svelte.ts'],
     languageOptions: { parserOptions: { parser: tseslint.parser } },
+    // 型別檢查由 TypeScript 負責；no-undef 不認得 TS 型別（typescript-eslint 建議關閉）
+    rules: { 'no-undef': 'off' },
   },
   {
     rules: {

@@ -171,3 +171,15 @@ export function gifBytes(frames: number): Uint8Array {
   out.push(0x3b)
   return new Uint8Array(out)
 }
+
+/** 純雜訊：幾乎無法壓縮，用來驗證「無法達成」 */
+export function noise(width = 2000, height = 2000, seed = 9): RawImage {
+  const r = rng(seed)
+  const img = blank(width, height)
+  for (let i = 0; i < img.data.length; i += 4) {
+    img.data[i] = r() * 256
+    img.data[i + 1] = r() * 256
+    img.data[i + 2] = r() * 256
+  }
+  return img
+}

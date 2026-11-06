@@ -1,18 +1,13 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "啟動 TinyImg 開發伺服器",
-			"type": "shell",
-			"command": "python",
-			"args": [
-				"-m",
-				"http.server",
-				"8000"
-			],
-			"group": "build",
-			"isBackground": true,
-			"problemMatcher": []
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "啟動 TinyImg 開發伺服器",
+      "type": "npm",
+      "script": "dev",
+      "group": "build",
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
 }
