@@ -21,18 +21,25 @@ export type WorkerInMessage =
       request: CompressRequest
       /** 選填：先套用編輯再壓縮 */
       edit?: EditState
+      /** 解碼後先回傳預覽點陣圖，主執行緒不必再解碼一次 */
+      wantPreview?: boolean
     }
   | { type: 'to-png'; id: number; bytes: ArrayBuffer; mimeType: string }
 
 export type WorkerOutMessage =
   | { type: 'result'; id: number; source: SourceInfo; result: CompressResult }
   | { type: 'png'; id: number; bytes: ArrayBuffer }
+  | { type: 'preview'; id: number; source: { width: number; height: number }; bitmap: unknown }
   | { type: 'error'; id: number; error: CompressError }
 
 export interface WorkerDeps {
   decode(bytes: Uint8Array, mimeType: string): Promise<RawImage>
   codecs: Codecs
   toPng(bytes: Uint8Array, mimeType: string): Promise<Uint8Array>
+  /** 產生預覽物件（瀏覽器中為縮小的 ImageBitmap） */
+  preview?(img: RawImage): Promise<unknown>
+  /** 處理結束（成功或失敗）後釋放 decode 保留的資源 */
+  release?(img: RawImage): void
 }
 
 const ERR = {
@@ -82,37 +89,55 @@ export function createHandler(deps: WorkerDeps) {
     } catch {
       return fail(ERR.decode)
     }
-    if (isCancelled()) return
-    const original = { width: img.width, height: img.height }
-    const edited =
-      msg.edit !== undefined && JSON.stringify(msg.edit) !== JSON.stringify(identityEdit(original))
+    const decoded = img
     try {
-      if (edited) img = await applyEdit(img, msg.edit!, deps.codecs.resize?.bind(deps.codecs))
-    } catch {
-      return fail(ERR.internal)
-    }
-    if (isCancelled()) return
+      if (isCancelled()) return
+      const original = { width: img.width, height: img.height }
+      // 先產生預覽再壓縮（依序）：實測並行在 Firefox 上會讓兩者在同一個 worker 執行緒互搶，反而更慢
+      // （research 002 R8）。預覽失敗不影響壓縮
+      if (msg.wantPreview && deps.preview) {
+        try {
+          const bitmap = await deps.preview(img)
+          if (isCancelled()) return
+          post({ type: 'preview', id, source: original, bitmap })
+        } catch {
+          // 忽略：主執行緒仍會拿到壓縮結果
+        }
+      }
+      const edited =
+        msg.edit !== undefined &&
+        JSON.stringify(msg.edit) !== JSON.stringify(identityEdit(original))
+      try {
+        if (edited) img = await applyEdit(img, msg.edit!, deps.codecs.resize?.bind(deps.codecs))
+      } catch {
+        return fail(ERR.internal)
+      }
+      if (isCancelled()) return
 
-    const source: SourceInfo = {
-      name: file.name,
-      mimeType: file.mimeType,
-      byteSize: bytes.length,
-      width: original.width,
-      height: original.height,
-      // 透明度以編輯後的影像為準（例如裁掉透明區域後就不需要 PNG）
-      hasAlpha: hasAlpha(img),
-      isAnimated: file.mimeType === 'image/gif' && isAnimatedGif(bytes),
-    }
-    try {
-      const result = await compressToTarget(img, { ...source, bytes }, req, deps.codecs, {
-        isCancelled,
-        // 有編輯時，原始檔不再代表這張影像，不能回傳它
-        allowOriginal: !edited,
-      })
-      if (!isCancelled()) post({ type: 'result', id, source, result })
-    } catch (e) {
-      if (e instanceof CancelledError) return
-      fail(ERR.internal)
+      const source: SourceInfo = {
+        name: file.name,
+        mimeType: file.mimeType,
+        byteSize: bytes.length,
+        width: original.width,
+        height: original.height,
+        // 透明度以編輯後的影像為準（例如裁掉透明區域後就不需要 PNG）
+        hasAlpha: hasAlpha(img),
+        isAnimated: file.mimeType === 'image/gif' && isAnimatedGif(bytes),
+      }
+      try {
+        const result = await compressToTarget(img, { ...source, bytes }, req, deps.codecs, {
+          isCancelled,
+          // 有編輯時，原始檔不再代表這張影像，不能回傳它
+          allowOriginal: !edited,
+        })
+        if (!isCancelled()) post({ type: 'result', id, source, result })
+      } catch (e) {
+        if (e instanceof CancelledError) return
+        fail(ERR.internal)
+      }
+    } finally {
+      // 釋放解碼時保留的資源（例如瀏覽器中的 ImageBitmap）
+      deps.release?.(decoded)
     }
   }
 }

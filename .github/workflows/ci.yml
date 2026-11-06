@@ -31,12 +31,14 @@ jobs:
         run: npm run typecheck
       - name: Unit & integration tests (core coverage >= 90%)
         run: npm run test:coverage && npm test
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Component tests
+        run: npm run test:components -w @tinyimg/web
       - name: Build
         run: npm run build
       - name: Bundle budget (first-load JS <= 200 KB gzip)
         run: npm run size
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium firefox webkit
       - name: E2E
         run: npm run e2e
       - name: Upload Playwright report

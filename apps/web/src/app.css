@@ -63,3 +63,352 @@ select {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* ---------- 版面 ---------- */
+.app {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 16px 3rem;
+}
+.app.has-file {
+  max-width: 1280px;
+}
+.app-header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+.app-header p,
+.app-footer {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+}
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+}
+@media (min-width: 900px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
+  }
+}
+.stage-col,
+.side {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.stage {
+  position: relative;
+  max-width: 100%;
+}
+.stage.has-slider {
+  margin-bottom: 2.5rem;
+}
+.crop-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.btn {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn.primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+.btn-link {
+  justify-self: start;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  text-decoration: underline;
+  background: none;
+  cursor: pointer;
+}
+.output-size,
+.muted {
+  margin: 0;
+  color: var(--muted);
+}
+.error-box {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  color: var(--danger);
+}
+select,
+input[type='number'] {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  min-width: 0;
+}
+
+/* ---------- 放入區 ---------- */
+.dropzone {
+  display: grid;
+  gap: 0.4rem;
+  place-items: center;
+  text-align: center;
+  padding: 2.5rem 1rem;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+}
+.dropzone.compact {
+  padding: 1rem;
+}
+.dropzone:hover,
+.dropzone.over {
+  border-color: var(--accent);
+}
+.dropzone-label {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+.dropzone.compact .dropzone-label {
+  font-size: 1rem;
+}
+.dropzone-hint {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* ---------- 設定 ---------- */
+.settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.settings label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.95rem;
+}
+.settings small {
+  color: var(--muted);
+}
+.settings-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--danger);
+}
+
+/* ---------- 結果資訊 ---------- */
+.info {
+  display: grid;
+  gap: 0.35rem;
+}
+.info p {
+  margin: 0;
+}
+.info .meta {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.status {
+  font-weight: 600;
+}
+.status.achieved,
+.status.original-fits {
+  color: var(--ok);
+}
+.status.unreachable {
+  color: var(--warn);
+}
+.warnings {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--warn);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.actions .btn {
+  padding: 0.7rem 1.2rem;
+}
+.toast {
+  min-height: 1.5rem;
+  color: var(--muted);
+}
+
+/* ---------- 工具列 ---------- */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.toolbar button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.toolbar button:hover:not(:disabled) {
+  border-color: var(--border);
+  background: var(--bg);
+}
+.toolbar button[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.toolbar button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---------- 畫布、裁切、對比 ---------- */
+.editor-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: repeating-conic-gradient(#0000 0 25%, rgb(127 127 127 / 0.15) 0 50%) 0 0 / 16px 16px;
+}
+.crop-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.crop-shade {
+  fill: rgb(0 0 0 / 0.45);
+  pointer-events: none;
+}
+.crop-frame {
+  fill: transparent;
+  stroke: #fff;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  cursor: move;
+}
+.crop-box:focus {
+  outline: none;
+}
+.crop-box:focus-visible .crop-frame {
+  stroke: var(--focus);
+  stroke-width: 3;
+}
+.crop-handle {
+  fill: #fff;
+  stroke: #1d2125;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.crop-handle.nw,
+.crop-handle.se {
+  cursor: nwse-resize;
+}
+.crop-handle.ne,
+.crop-handle.sw {
+  cursor: nesw-resize;
+}
+.crop-handle.n,
+.crop-handle.s {
+  cursor: ns-resize;
+}
+.crop-handle.e,
+.crop-handle.w {
+  cursor: ew-resize;
+}
+.compare-after {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.compare-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.4);
+  pointer-events: none;
+}
+.compare-slider {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2.25rem;
+  width: 100%;
+}
+
+/* ---------- 對話框 ---------- */
+.dialog {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  max-width: min(92vw, 460px);
+}
+.dialog h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+.dialog form {
+  display: grid;
+  gap: 0.75rem;
+}
+.dialog label {
+  display: grid;
+  gap: 0.25rem;
+}
+.dialog .row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.dialog .row.end {
+  justify-content: flex-end;
+}
+.dialog [role='alert'] {
+  margin: 0;
+  color: var(--danger);
+}
+.dialog table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.dialog th {
+  text-align: left;
+  font-weight: normal;
+  padding: 0.3rem 0.75rem 0.3rem 0;
+  white-space: nowrap;
+}
+.dialog kbd {
+  font-family: inherit;
+  padding: 0.1rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+}

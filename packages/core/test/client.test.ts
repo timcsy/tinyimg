@@ -150,4 +150,18 @@ describe('createCompressor', () => {
     await flush()
     expect(FakeWorker.instances[0]!.sent[0]).toMatchObject({ edit })
   })
+  it('onPreview 收到目前請求的預覽；被取代的請求的預覽會被忽略', async () => {
+    const c = make()
+    const seen: unknown[] = []
+    void c.compress(blob(), req, undefined, (p) => seen.push(p))
+    await flush()
+    void c.compress(blob(), req, undefined, (p) => seen.push(p))
+    await flush()
+    const w = FakeWorker.instances[0]!
+    expect(w.sent[1]).toMatchObject({ wantPreview: true })
+    const size = { width: 4, height: 3 }
+    w.reply({ type: 'preview', id: w.sent[0]!.id, source: size, bitmap: 'old' })
+    w.reply({ type: 'preview', id: w.sent[1]!.id, source: size, bitmap: 'new' })
+    expect(seen).toEqual([{ source: size, bitmap: 'new' }])
+  })
 })

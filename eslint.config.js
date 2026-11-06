@@ -1,6 +1,6 @@
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
-import svelte from 'eslint-plugin-svelte'
+import reactHooks from 'eslint-plugin-react-hooks'
 import globals from 'globals'
 
 export default tseslint.config(
@@ -11,6 +11,7 @@ export default tseslint.config(
       '**/coverage/**',
       '**/playwright-report/**',
       '**/test-results/**',
+      '**/__screenshots__/**',
       '.specify/**',
       '.claude/**',
       '.agents/**',
@@ -18,13 +19,16 @@ export default tseslint.config(
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  ...svelte.configs.recommended,
   {
     languageOptions: { globals: { ...globals.browser, ...globals.node, ...globals.worker } },
   },
   {
-    files: ['**/*.svelte', '**/*.svelte.ts'],
-    languageOptions: { parserOptions: { parser: tseslint.parser } },
+    files: ['**/*.tsx'],
+    plugins: { 'react-hooks': reactHooks },
+    rules: reactHooks.configs.recommended.rules,
+  },
+  {
+    files: ['**/*.ts', '**/*.tsx'],
     // 型別檢查由 TypeScript 負責；no-undef 不認得 TS 型別（typescript-eslint 建議關閉）
     rules: { 'no-undef': 'off' },
   },

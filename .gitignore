@@ -20,3 +20,7 @@ blob-report/
 
 # 測試時產生的圖片（由產生器建立，不進版本控制）
 apps/web/e2e/fixtures/generated/
+
+# Vitest browser mode 失敗時的截圖
+__screenshots__/
+.vitest/

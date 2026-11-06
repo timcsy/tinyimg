@@ -36,7 +36,7 @@
 - **非破壞式編輯**：原圖不動，編輯內容存成可序列化的文件模型，匯出時才合成。
 - **壓縮核心**：先對品質做二分搜尋，壓不下來再縮小尺寸；PNG 走量化。WASM codec
   延遲載入，候選方案是 jSquash。（推導自原則 2：做不到就明說）
-- UI 框架：Svelte 5（階段 0 的 plan 決定，理由見 `specs/001-foundation/research.md` R2）。
+- UI 框架：React 19（2026-11-06 由 Svelte 5 改為 React，見 [history/005](history/005-UI框架從Svelte5到React.md)）。
 - 未決：畫布函式庫（Konva 或 Fabric，階段 1 決定）、部署網域（暫用 GitHub Pages 預設網址）。
 
 ## 路線圖
@@ -101,5 +101,6 @@
 
 | 觸發關鍵字 | MUST 讀 |
 |---|---|
+| UI 框架、React、Svelte | [`history/005-UI框架從Svelte5到React.md`](history/005-UI框架從Svelte5到React.md) |
 | 建置、CDN、部署、GitHub Actions | [`history/001-建置方式從只用CDN到打包加GitHub-Actions發佈.md`](history/001-建置方式從只用CDN到打包加GitHub-Actions發佈.md) |
 | 具體技術約束、門檻 | [`.specify/memory/constitution.md`](../.specify/memory/constitution.md) |

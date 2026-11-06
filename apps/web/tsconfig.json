@@ -1,5 +1,15 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "types": ["node"] },
-  "include": ["src", "test", "e2e", "vite.config.ts", "playwright.config.ts"]
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "types": ["node", "vite/client"]
+  },
+  "include": [
+    "src",
+    "test",
+    "e2e",
+    "vite.config.ts",
+    "vitest.components.config.ts",
+    "playwright.config.ts"
+  ]
 }

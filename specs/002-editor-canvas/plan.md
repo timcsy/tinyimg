@@ -14,7 +14,7 @@ SVG 裁切層、工具列、快捷鍵和對比滑桿。不使用畫布函式庫�
 
 **Language/Version**: TypeScript 6.0（strict）
 
-**Primary Dependencies**: 沿用 001；新增開發依賴 `@vitest/browser-playwright` 5.1、`vitest-browser-svelte` 3.1（元件測試）
+**Primary Dependencies**: React 19（取代 Svelte 5，見 research R7）；開發依賴 `@vitest/browser-playwright` 5.1、`vitest-browser-react` 2.3（元件測試）
 
 **Storage**: N/A
 
@@ -68,16 +68,16 @@ packages/editor/            # 新增 @tinyimg/editor
 └── test/                   # 單元測試與屬性測試（含逐步套用的參考實作）
 
 apps/web/src/
-├── App.svelte              # 改為畫布式版面
+├── App.tsx                 # 畫布式版面
 └── lib/
-    ├── editor.svelte.ts    # 把 EditorDocument 包成 runes 狀態，串接 workspace
+    ├── useEditor.ts        # 把 EditorDocument 包成 React 狀態，串接 workspace
     ├── shortcuts.ts        # keymap（純函式）
-    ├── EditorCanvas.svelte # Canvas2D 預覽
-    ├── CropOverlay.svelte  # SVG 裁切框
-    ├── Toolbar.svelte
-    ├── ResizeDialog.svelte
-    ├── CompareSlider.svelte
-    └── ShortcutHelp.svelte
+    ├── output.ts           # 複製、下載（純函式）
+    ├── EditorCanvas.tsx    # Canvas2D 預覽
+    ├── CropOverlay.tsx     # SVG 裁切框
+    ├── Toolbar.tsx
+    ├── CompareSlider.tsx
+    └── Dialogs.tsx         # 調整尺寸、快捷鍵說明
 apps/web/test/components/   # 元件測試（browser mode）
 apps/web/e2e/editor.spec.ts # E2E
 ```

@@ -8,10 +8,21 @@ export interface WorkerLike {
   onmessage: ((e: { data: WorkerOutMessage }) => void) | null
 }
 
+export interface Preview {
+  source: { width: number; height: number }
+  /** 瀏覽器中為 ImageBitmap */
+  bitmap: unknown
+}
+
 export type CompressOutcome = { source: SourceInfo; result: CompressResult } | { superseded: true }
 
 export interface Compressor {
-  compress(file: Blob, req: Omit<CompressRequest, 'id'>, edit?: EditState): Promise<CompressOutcome>
+  compress(
+    file: Blob,
+    req: Omit<CompressRequest, 'id'>,
+    edit?: EditState,
+    onPreview?: (p: Preview) => void,
+  ): Promise<CompressOutcome>
   toPng(bytes: Uint8Array, mimeType: string): Promise<Uint8Array>
   dispose(): void
 }
@@ -19,6 +30,7 @@ export interface Compressor {
 interface Pending {
   resolve(v: unknown): void
   reject(e: CompressError): void
+  onPreview?: (p: Preview) => void
   timer?: ReturnType<typeof setTimeout>
 }
 
@@ -48,6 +60,10 @@ export function createCompressor(
     w.onmessage = ({ data }) => {
       const p = pending.get(data.id)
       if (!p) return
+      if (data.type === 'preview') {
+        p.onPreview?.({ source: data.source, bitmap: data.bitmap })
+        return
+      }
       pending.delete(data.id)
       clearTimeout(p.timer)
       if (data.type === 'error') p.reject(data.error)
@@ -77,12 +93,12 @@ export function createCompressor(
   }
 
   return {
-    compress(file, req, edit) {
+    compress(file, req, edit, onPreview) {
       if (currentCompress !== null) supersede(currentCompress)
       const id = nextId++
       currentCompress = id
       return new Promise<CompressOutcome>((resolve, reject) => {
-        const p: Pending = { resolve: resolve as (v: unknown) => void, reject }
+        const p: Pending = { resolve: resolve as (v: unknown) => void, reject, onPreview }
         p.timer = setTimeout(restart, timeoutMs)
         pending.set(id, p)
         void file.arrayBuffer().then((bytes) => {
@@ -95,6 +111,7 @@ export function createCompressor(
               file: { name, mimeType: file.type, bytes },
               request: { ...req, id },
               ...(edit ? { edit } : {}),
+              ...(onPreview ? { wantPreview: true } : {}),
             },
             [bytes],
           )

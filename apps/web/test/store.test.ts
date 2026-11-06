@@ -70,10 +70,79 @@ describe('workspace 狀態機', () => {
     const ws = createWorkspace(c)
     await ws.setFile(file(), settings)
     await ws.updateSettings({ maxQuality: 50, targetKB: 200, format: 'webp' })
-    expect(c.compress).toHaveBeenLastCalledWith(expect.any(File), {
-      maxQuality: 0.5,
-      targetBytes: 200 * 1024,
-      format: 'webp',
+    expect(c.compress).toHaveBeenLastCalledWith(
+      expect.any(File),
+      { maxQuality: 0.5, targetBytes: 200 * 1024, format: 'webp' },
+      undefined,
+      undefined,
+    )
+  })
+  it('setEdit 會帶著 edit 重送；之後改設定也沿用這個 edit', async () => {
+    const c = fakeCompressor(async () => outcome())
+    const ws = createWorkspace(c)
+    await ws.setFile(file(), settings)
+    const edit = {
+      crop: { x: 0, y: 0, width: 1, height: 1 },
+      rotation: 1 as const,
+      flipX: false,
+      output: { width: 1, height: 1 },
+    }
+    await ws.setEdit(edit)
+    expect(c.compress).toHaveBeenLastCalledWith(
+      expect.any(File),
+      expect.any(Object),
+      edit,
+      undefined,
+    )
+    await ws.updateSettings({ ...settings, targetKB: 300 })
+    expect(c.compress).toHaveBeenLastCalledWith(
+      expect.any(File),
+      expect.objectContaining({ targetBytes: 300 * 1024 }),
+      edit,
+      undefined,
+    )
+  })
+  it('放入新檔案會清除舊的 edit', async () => {
+    const c = fakeCompressor(async () => outcome())
+    const ws = createWorkspace(c)
+    await ws.setFile(file(), settings)
+    await ws.setEdit({
+      crop: { x: 0, y: 0, width: 1, height: 1 },
+      rotation: 1,
+      flipX: false,
+      output: { width: 1, height: 1 },
     })
+    await ws.setFile(file(), settings)
+    expect(c.compress).toHaveBeenLastCalledWith(
+      expect.any(File),
+      expect.any(Object),
+      undefined,
+      undefined,
+    )
+  })
+  it('沒有檔案時 setEdit 不送出', async () => {
+    const c = fakeCompressor(async () => outcome())
+    const ws = createWorkspace(c)
+    await ws.setEdit({
+      crop: { x: 0, y: 0, width: 1, height: 1 },
+      rotation: 0,
+      flipX: false,
+      output: { width: 1, height: 1 },
+    })
+    expect(c.compress).not.toHaveBeenCalled()
+  })
+  it('setFile 才要求預覽（由 worker 解碼一次產生），改設定或編輯時不再要求', async () => {
+    const c = fakeCompressor(async () => outcome())
+    const ws = createWorkspace(c)
+    const onPreview = vi.fn()
+    await ws.setFile(file(), settings, onPreview)
+    expect(c.compress).toHaveBeenLastCalledWith(
+      expect.any(File),
+      expect.any(Object),
+      undefined,
+      onPreview,
+    )
+    await ws.updateSettings({ ...settings, targetKB: 300 })
+    expect((c.compress as ReturnType<typeof vi.fn>).mock.lastCall![3]).toBeUndefined()
   })
 })

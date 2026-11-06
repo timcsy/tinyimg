@@ -47,7 +47,7 @@
 
 ## R5. 元件測試
 
-- **Decision**：引入 Vitest browser mode（`@vitest/browser-playwright` 5.1 加 `vitest-browser-svelte` 3.1），
+- **Decision**：引入 Vitest browser mode（`@vitest/browser-playwright` 5.1 加 `vitest-browser-react` 2.3），
   在真實的 Chromium 中測試 CropOverlay、Toolbar、CompareSlider 的互動行為。
 - **Rationale**：依 draft「元件測試的適用範圍」的推薦，從編輯器開始落實憲章 I 的元件測試。
   在真實瀏覽器裡跑，指標事件和鍵盤事件才可靠；happy-dom 對 pointer capture 的支援不完整。
@@ -59,3 +59,23 @@
   把按鍵事件對應到命令。事件目標是 `input`、`select`、`textarea` 或 contenteditable 時，跳過單鍵快捷鍵與 ⌘C。
   ⌘S 一律 `preventDefault`。
 - **Rationale**：FR-010 的規則需要能被單元測試完整驗證，而不是散落在各個元件裡。
+
+## R7. UI 框架改為 React（2026-11-06，實作中途）
+
+- **Decision**：`apps/web` 從 Svelte 5 改為 React 19。決策轉移見 `knowledge/history/005-UI框架從Svelte5到React.md`。
+- **影響**：
+  - `packages/core`、`packages/editor` 完全不動。
+  - `apps/web` 的純 TS 模組（workspace、shortcuts、format、output、strings）原樣沿用。
+  - 元件改寫成 `.tsx`。原本元件內的 scoped style 集中到 `app.css`。文件狀態包成 `useEditor` hook。
+  - 元件測試改用 `vitest-browser-react`，斷言不變。001 的 E2E 也不需修改，作為「改寫後行為一致」的驗收。
+- **無障礙檢查**：Svelte 有編譯時期的 a11y 警告；`eslint-plugin-jsx-a11y` 目前不支援 ESLint 10，
+  所以改由 E2E 的 axe 檢查把關。lint 加入 `eslint-plugin-react-hooks`。
+
+## R8. 預覽由 worker 產生（2026-11-06，實作中途）
+
+- **問題**：初版在主執行緒另外解碼一次以產生預覽，和 worker 的解碼搶 CPU；12MP 在 Firefox 從 2.15 秒變成 4.90 秒。
+- **Decision**：worker 解碼後，先把預覽縮成最長邊 2048 的 `ImageBitmap` 傳回主執行緒（可轉移），再開始壓縮；
+  主執行緒不再解碼。協定新增 `wantPreview` 與 `preview` 訊息，以及 `release` 這個 dep（處理結束時釋放解碼資源）。
+- **量測過的替代方案**：預覽和壓縮並行、從保留的 bitmap 縮小、用 OffscreenCanvas 縮小。在 Firefox 上都更慢（4 到 7 秒），
+  原因是和壓縮在同一個 worker 執行緒互搶。數據見 `knowledge/draft/2026-11-06-SC-003在Firefox與WebKit的預算.md`。
+- **待決定**：Firefox 和 WebKit 是否也以 3 秒驗收（目前暫定 5 秒作為回歸防線），見上述 draft。

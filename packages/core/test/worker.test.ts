@@ -143,4 +143,41 @@ describe('worker handler', () => {
     const m = out[0]!
     expect(m.type === 'result' && m.result.status).not.toBe('original-fits')
   })
+  it('wantPreview 時，先送出 preview（原始尺寸與預覽物件），再送結果', async () => {
+    const fakeBitmap = { kind: 'bitmap' }
+    const { out, run } = setup({ preview: async () => fakeBitmap })
+    await run({ type: 'compress', id: 1, file: file(), request: request(1), wantPreview: true })
+    expect(out.map((m) => m.type)).toEqual(['preview', 'result'])
+    expect(out[0]).toMatchObject({ type: 'preview', id: 1, source: { width: 1000, height: 1000 } })
+    expect(out[0]!.type === 'preview' && out[0]!.bitmap).toBe(fakeBitmap)
+  })
+  it('沒有要求預覽時不產生 preview', async () => {
+    let called = false
+    const { out, run } = setup({
+      preview: async () => {
+        called = true
+        return {}
+      },
+    })
+    await run({ type: 'compress', id: 1, file: file(), request: request(1) })
+    expect(called).toBe(false)
+    expect(out.map((m) => m.type)).toEqual(['result'])
+  })
+  it('預覽失敗不影響壓縮結果', async () => {
+    const { out, run } = setup({ preview: async () => Promise.reject(new Error('x')) })
+    await run({ type: 'compress', id: 1, file: file(), request: request(1), wantPreview: true })
+    expect(out.map((m) => m.type)).toEqual(['result'])
+  })
+  it('處理結束後呼叫 release 釋放解碼資源（成功或失敗都會）', async () => {
+    const released: unknown[] = []
+    const img = blank(100, 100)
+    const { run } = setup({ decode: async () => img, release: (i) => released.push(i) })
+    await run({ type: 'compress', id: 1, file: file(), request: request(1) })
+    expect(released).toEqual([img])
+    const codecs = fakeCodecs({})
+    codecs.encode = async () => Promise.reject(new Error('boom'))
+    const failing = setup({ decode: async () => img, codecs, release: (i) => released.push(i) })
+    await failing.run({ type: 'compress', id: 2, file: file(), request: request(2) })
+    expect(released).toEqual([img, img])
+  })
 })

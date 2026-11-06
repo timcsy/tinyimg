@@ -1,5 +1,11 @@
-import type { CompressError, OutputFormat, SourceInfo, CompressResult } from '@tinyimg/core'
-import type { Compressor } from '@tinyimg/core/client'
+import type {
+  CompressError,
+  CompressResult,
+  EditState,
+  OutputFormat,
+  SourceInfo,
+} from '@tinyimg/core'
+import type { Compressor, Preview } from '@tinyimg/core/client'
 
 export interface Settings {
   /** 10–100 */
@@ -30,33 +36,48 @@ export function createWorkspace(
   onChange: (s: WorkspaceState) => void = () => {},
 ) {
   let file: File | null = null
+  let edit: EditState | undefined
+  let lastSettings: Settings | null = null
   const ws = {
     state: { kind: 'idle' } as WorkspaceState,
     get file() {
       return file
     },
-    async setFile(f: File, settings: Settings) {
+    /** onPreview：worker 解碼後回傳預覽點陣圖，主執行緒不必再解碼一次 */
+    async setFile(f: File, settings: Settings, onPreview?: (p: Preview) => void) {
       file = f
-      await run(settings)
+      edit = undefined
+      await run(settings, onPreview)
     },
     async updateSettings(settings: Settings) {
       if (file) await run(settings)
+    },
+    /** 編輯改變時重新壓縮；之後改設定也沿用這個 edit */
+    async setEdit(e: EditState) {
+      edit = e
+      if (file && lastSettings) await run(lastSettings)
     },
   }
   const set = (s: WorkspaceState) => {
     ws.state = s
     onChange(s)
   }
-  async function run(settings: Settings) {
+  async function run(settings: Settings, onPreview?: (p: Preview) => void) {
     if (!file) return
+    lastSettings = settings
     if (!validSettings(settings)) return set({ kind: 'invalid' })
     set({ kind: 'processing' })
     try {
-      const out = await compressor.compress(file, {
-        maxQuality: settings.maxQuality / 100,
-        targetBytes: Math.round(settings.targetKB * 1024),
-        format: settings.format,
-      })
+      const out = await compressor.compress(
+        file,
+        {
+          maxQuality: settings.maxQuality / 100,
+          targetBytes: Math.round(settings.targetKB * 1024),
+          format: settings.format,
+        },
+        edit,
+        onPreview,
+      )
       if ('superseded' in out) return
       set({ kind: 'done', source: out.source, result: out.result })
     } catch (e) {
