@@ -1,1 +1,7 @@
-export {}
+export * from './types'
+export { hasAlpha, flattenAlpha, isAnimatedGif } from './analyze'
+export { resolveFormat } from './format'
+export { boxResize, fitLongestEdge, nextScale } from './resize'
+export { validateRequest } from './validate'
+export { searchQuality } from './search'
+export { compressToTarget, type CompressOptions } from './compress'
