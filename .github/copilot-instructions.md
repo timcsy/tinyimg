@@ -1,76 +1,39 @@
-<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
+# TinyImg — AI 助手指引
 
-# TinyImg 專案 Copilot 指示
+TinyImg 正在全面重構：要做成本機處理的圖片標註與壓縮工具，涵蓋網頁、PWA 和瀏覽器外掛。
+方向與路線圖見 `knowledge/vision.md`。
 
-## 專案概述
-這是一個純前端的圖片壓縮工具，使用 HTML5、CSS3 和原生 JavaScript 開發。專案目標是建立一個功能完整、使用者友善的圖片壓縮網頁應用程式。
+## 動手前必讀
 
-## 開發原則
+1. **`.specify/memory/constitution.md`**：專案憲章，效力最高。具體規則、門檻、技術約束、
+   CI 關卡都在這裡。
+2. **`knowledge/`**：專案的「為什麼」，從 `principles.md`、`vision.md`、`experience.md` 讀起
+   （見下方 Project Knowledge）。
 
-### 技術限制
-- **純前端實作**：不可使用任何後端服務或 Node.js 工具
-- **CDN 依賴**：只能使用 CDN 版本的第三方函式庫，目前使用 Bootstrap 5 和 Bootstrap Icons
-- **原生 JavaScript**：使用 ES6+ 語法，但不依賴任何框架或構建工具
-- **瀏覽器相容性**：確保主流瀏覽器支援 (Chrome 76+, Firefox 63+, Safari 13.1+, Edge 79+)
+## 工作方式
 
-### 程式碼風格
-- 使用 ES6 類別和模組化設計
-- 採用語義化的變數和函式命名
-- 保持程式碼結構清晰，適當添加註解
-- 錯誤處理要完整，提供友善的使用者提示
-- 遵循響應式設計原則
+- 依 Spec Kit 流程開發：`/speckit-specify` → `/speckit-clarify` → `/speckit-plan` →
+  `/speckit-tasks` → `/speckit-implement`。
+- 採用 TDD：先寫會失敗的測試，再實作；CI 全綠才算完成。
+- 規格文件和回答一律使用繁體中文；程式碼識別字和技術名詞保留原文。
 
-### 功能特色
-- 多種圖片上傳方式：拖曳、檔案選擇、剪貼簿貼上
-- 智慧壓縮演算法：漸進式壓縮直到達到目標檔案大小
-- 剪貼簿整合：支援複製壓縮後的圖片到剪貼簿
-- 現代化 UI：使用 Bootstrap 5 和自訂 CSS 動畫
-- 即時預覽和詳細資訊顯示
+## 關於根目錄的舊版檔案
 
-## 開發指導
+`index.html`、`script.js`、`styles.css` 是 2025-08-03 的舊版 v0，會在重構中被取代。
+舊版的規則（例如「只能使用 CDN」）已經失效。舊版文件可以用 `git show b655abb:AGENTS.md` 查看，
+決策轉移的經過見 `knowledge/history/`。
 
-### 新功能開發
-- 確保新功能符合純前端的限制
-- 優先考慮使用者體驗和介面一致性
-- 測試跨瀏覽器相容性
-- 考慮效能影響，特別是處理大圖片時
+<!-- Knowie: Project Knowledge -->
+## Project Knowledge
 
-### 程式碼修改
-- 修改前先閱讀 AGENTS.md 了解專案狀態
-- 保持現有的類別結構和命名慣例
-- 新增功能時考慮與現有功能的整合
-- 確保修改不會破壞現有功能
+This project maintains structured knowledge in `knowledge/`:
 
-### UI/UX 考量
-- 保持 Bootstrap 5 的設計語言
-- 使用現有的色彩配置和動畫效果
-- 確保響應式設計在各種裝置上正常運作
-- 提供清楚的使用者回饋和狀態指示
+- **Principles** (`knowledge/principles.md`): Core axioms and derived development principles — the project's non-negotiable rules.
+- **Vision** (`knowledge/vision.md`): Goals, current state, architecture decisions, and roadmap.
+- **Experience** (`knowledge/experience.md`): Distilled lessons from past development — patterns, pitfalls, and takeaways.
 
-### 除錯和最佳化
-- 優先使用瀏覽器內建 API
-- 注意記憶體管理，特別是處理 Blob 和 Object URL
-- 實作適當的載入狀態和錯誤處理
-- 考慮使用 Web Worker 來處理大檔案（如果需要）
+Read these files at the start of any task to understand the project's *why* and constraints.
+Additional context may be found in `knowledge/concepts/`, `knowledge/history/`, and `knowledge/draft/`.
 
-## 常用 API 和技術
-
-### 核心 API
-- Canvas API：圖片繪製和壓縮
-- FileReader API：讀取本地檔案
-- Clipboard API：剪貼簿操作
-- Drag & Drop API：拖曳上傳
-- Blob API：二進位資料處理
-
-### UI 框架
-- Bootstrap 5：主要 UI 框架
-- Bootstrap Icons：圖示系統
-- 自訂 CSS：漸層、動畫、響應式設計
-
-### 程式模式
-- 事件驅動架構
-- 防抖 (debounce) 機制
-- 漸進式增強
-- 錯誤邊界處理
-
-記住：這個專案的核心價值是簡單、快速、不需要安裝或後端服務的圖片壓縮解決方案。所有的開發決策都應該圍繞這個目標進行。
+Learned procedures live in `knowledge/skills/` (agentskills.io SKILL.md format). If your tool auto-loads skills, they may be projected into your skill directory; otherwise read the relevant `SKILL.md` there and follow it.
+<!-- /Knowie -->
