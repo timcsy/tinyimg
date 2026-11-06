@@ -26,4 +26,16 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           gh release create "$GITHUB_REF_NAME" "apps/extension/tinyimg-extension-${version}.zip" \
             --title "TinyImg ${GITHUB_REF_NAME}" \
-            --notes "Chrome / Edge 外掛（Manifest V3）。安裝方式見 apps/extension/README 或 repo README。"
+            --notes "Chrome / Edge 外掛（Manifest V3）。安裝與上架方式見 apps/extension/README.md。"
+      - name: Upload to Chrome Web Store / Edge Add-ons (skipped when no credentials)
+        env:
+          CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+          CWS_PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}
+          CWS_EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+          STORE_PUBLISH: ${{ vars.STORE_PUBLISH }}
+        run: node apps/extension/scripts/store.mjs "apps/extension/tinyimg-extension-${GITHUB_REF_NAME#v}.zip"
