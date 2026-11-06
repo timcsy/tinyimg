@@ -164,4 +164,19 @@ describe('createCompressor', () => {
     w.reply({ type: 'preview', id: w.sent[1]!.id, source: size, bitmap: 'new' })
     expect(seen).toEqual([{ source: size, bitmap: 'new' }])
   })
+  it('同一個 Blob 帶相同的 fileKey，不同的 Blob 帶不同的 fileKey', async () => {
+    const c = make()
+    const a = blob()
+    void c.compress(a, req)
+    await flush()
+    void c.compress(a, req)
+    await flush()
+    void c.compress(blob(), req)
+    await flush()
+    const keys = FakeWorker.instances[0]!.sent.map((m) =>
+      m.type === 'compress' ? m.fileKey : null,
+    )
+    expect(keys[0]).toBe(keys[1])
+    expect(keys[2]).not.toBe(keys[0])
+  })
 })

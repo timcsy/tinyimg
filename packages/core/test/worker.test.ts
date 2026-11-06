@@ -180,4 +180,34 @@ describe('worker handler', () => {
     await failing.run({ type: 'compress', id: 2, file: file(), request: request(2) })
     expect(released).toEqual([img, img])
   })
+  it('同一個 fileKey 再次壓縮時不重新解碼（例如每次編輯）', async () => {
+    let decodes = 0
+    const { out, run } = setup({
+      decode: async () => {
+        decodes++
+        return blank(100, 100)
+      },
+    })
+    await run({ type: 'compress', id: 1, file: file(), request: request(1), fileKey: 7 })
+    await run({ type: 'compress', id: 2, file: file(), request: request(2), fileKey: 7 })
+    expect(decodes).toBe(1)
+    expect(out.map((m) => m.type)).toEqual(['result', 'result'])
+    await run({ type: 'compress', id: 3, file: file(), request: request(3), fileKey: 8 })
+    expect(decodes).toBe(2)
+  })
+  it('有快取時，release 只在快取被新檔案取代時才呼叫', async () => {
+    const released: unknown[] = []
+    const a = blank(10, 10)
+    const b = blank(20, 20)
+    let n = 0
+    const { run } = setup({
+      decode: async () => (n++ === 0 ? a : b),
+      release: (i) => released.push(i),
+    })
+    await run({ type: 'compress', id: 1, file: file(), request: request(1), fileKey: 1 })
+    await run({ type: 'compress', id: 2, file: file(), request: request(2), fileKey: 1 })
+    expect(released).toEqual([])
+    await run({ type: 'compress', id: 3, file: file(), request: request(3), fileKey: 2 })
+    expect(released).toEqual([a])
+  })
 })

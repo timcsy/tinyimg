@@ -92,6 +92,7 @@ export function CropOverlay({
         fillRule="evenodd"
         d={`M0 0H${output.width}V${output.height}H0Z M${box.x} ${box.y}h${box.width}v${box.height}h${-box.width}Z`}
       />
+      {/* 唯一的互動元素：可聚焦、鍵盤操作；框線本身可拖曳移動 */}
       <g
         ref={group}
         className="crop-box"
@@ -103,9 +104,6 @@ export function CropOverlay({
         onKeyDown={onKeyDown}
       >
         <rect
-          role="button"
-          tabIndex={-1}
-          aria-label="移動裁切框"
           data-handle="move"
           className="crop-frame"
           x={box.x}
@@ -114,13 +112,14 @@ export function CropOverlay({
           height={box.height}
           onPointerDown={(e) => start(e, 'move')}
         />
+      </g>
+      {/* 控制點只供指標使用；鍵盤以 Alt + 方向鍵調整大小作為替代（不可巢狀在按鈕內） */}
+      <g aria-hidden="true">
         {HANDLES.map((p) => (
           <rect
             key={p.h}
-            role="button"
-            tabIndex={-1}
-            aria-label={`${p.name}控制點`}
             data-handle={p.h}
+            data-name={`${p.name}控制點`}
             className={`crop-handle ${p.h}`}
             x={box.x + box.width * p.x - hs / 2}
             y={box.y + box.height * p.y - hs / 2}

@@ -32,3 +32,34 @@ test('12MP 照片在預算內完成，且主執行緒沒有超過 200ms 的長�
   // longtask API 只有 Chromium 支援；其他瀏覽器量不到，不能當作通過的證據
   if (browserName === 'chromium') expect(Math.max(0, ...longTasks)).toBeLessThanOrEqual(200)
 })
+
+// SC-004（002）：12MP 圖片每次編輯後，畫布預覽在 100 ms 內更新
+// SC-007：編輯後到看到新的壓縮結果 ≤ 3 秒（Firefox、WebKit 暫定 5 秒，見同一份 draft）
+test('12MP 圖片：旋轉後預覽 100ms 內更新，新結果在預算內（SC-004、SC-007） @serial', async ({
+  page,
+  browserName,
+}) => {
+  await page.goto('./')
+  await choose(page, 'photo-12mp.jpg')
+  await expect(page.getByTestId('result-status')).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByTestId('output-size')).toBeVisible()
+  const before = await page.getByTestId('result-meta').textContent()
+
+  const renderMs = await page.evaluate(async () => {
+    performance.clearMarks('tinyimg:render')
+    const t0 = performance.now()
+    document.querySelector<HTMLButtonElement>('[aria-label="順時針旋轉"]')!.click()
+    for (let i = 0; i < 200; i++) {
+      const m = performance.getEntriesByName('tinyimg:render')
+      if (m.length) return m[0]!.startTime - t0
+      await new Promise((r) => requestAnimationFrame(r))
+    }
+    return Infinity
+  })
+  const t1 = Date.now()
+  await expect(page.getByTestId('result-meta')).not.toHaveText(before ?? '', { timeout: 30_000 })
+  const resultMs = Date.now() - t1
+  console.log(`SC-004 render=${renderMs.toFixed(1)}ms SC-007 result=${resultMs}ms (${browserName})`)
+  expect(renderMs).toBeLessThanOrEqual(100)
+  expect(resultMs).toBeLessThanOrEqual(budgetMs(browserName))
+})

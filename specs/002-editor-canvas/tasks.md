@@ -43,7 +43,7 @@ description: "002 非破壞式編輯與畫布介面 的任務清單"
 - [X] T014 [P] [US2] 實作 `packages/editor/src/crop.ts`，讓 T011 通過
 - [X] T015 [US2] 寫元件測試 `apps/web/test/components/CropOverlay.test.ts`（拖曳控制點、鍵盤、Enter、Esc）與 `Toolbar.test.ts`（按鈕名稱、disabled 狀態、方向鍵移動焦點），確認失敗
 - [X] T016 [US2] 實作 `apps/web/src/lib/editor.svelte.ts`（文件加 runes，編輯後觸發 workspace 以 edit 重新壓縮）、`EditorCanvas.svelte`（以預覽點陣圖依 EditState 算繪）、`CropOverlay.svelte`、`Toolbar.svelte`、`ResizeDialog.svelte`，讓 T015 通過
-- [ ] T017 [US2] 寫 E2E `apps/web/e2e/editor.spec.ts`：裁切後的 output-size 正確、旋轉後寬高互換、3 次復原回到原尺寸、全部還原後可以再復原、編輯後的壓縮結果尺寸與 output-size 一致
+- [X] T017 [US2] 寫 E2E `apps/web/e2e/editor.spec.ts`：裁切後的 output-size 正確、旋轉後寬高互換、3 次復原回到原尺寸、全部還原後可以再復原、編輯後的壓縮結果尺寸與 output-size 一致
 
 ---
 
@@ -51,7 +51,7 @@ description: "002 非破壞式編輯與畫布介面 的任務清單"
 
 - [X] T018 [P] [US1] 寫 `apps/web/test/shortcuts.test.ts`：keymap 涵蓋 FR-010 的每一個快捷鍵；焦點在 input、select、textarea、contenteditable 時不攔截單鍵快捷鍵與 ⌘C；⌘S 會 preventDefault
 - [X] T019 [US1] 實作 `apps/web/src/lib/shortcuts.ts`，並在 App 中掛上 window keydown，讓 T018 通過；⌘C 在結果還沒完成時，等待結果後再複製
-- [ ] T020 [US1] 在 E2E `apps/web/e2e/editor.spec.ts` 加測試：貼上後按 ⌘C，Chromium 讀回剪貼簿得到 PNG，全程只有 2 個使用者操作（SC-001）；按 ⌘S 會下載；焦點在目標大小欄位時按 ⌘C 不會觸發圖片複製
+- [X] T020 [US1] 在 E2E `apps/web/e2e/editor.spec.ts` 加測試：貼上後按 ⌘C，Chromium 讀回剪貼簿得到 PNG，全程只有 2 個使用者操作（SC-001）；按 ⌘S 會下載；焦點在目標大小欄位時按 ⌘C 不會觸發圖片複製
 
 ---
 
@@ -59,14 +59,14 @@ description: "002 非破壞式編輯與畫布介面 的任務清單"
 
 - [X] T021 [P] [US3] 寫元件測試 `apps/web/test/components/CompareSlider.test.ts`：方向鍵每次 5%、Home、End、aria-valuetext、拖曳
 - [X] T022 [US3] 實作 `CompareSlider.svelte` 與 `ShortcutHelp.svelte`，讓 T021 通過
-- [ ] T023 [US3] 寫 E2E：只用鍵盤完成「放入 → 裁切 → 旋轉 → 復原 → 對比 → 複製」；淺色與暗色的 axe 檢查零違規；360 px 寬時沒有水平捲軸；按 ? 會開啟快捷鍵說明（SC-005）
-- [ ] T024 [US3] 寫 `@perf` E2E：12MP 圖片旋轉後 100 ms 內預覽更新（SC-004，在頁面中以 performance 標記量測）；編輯後 3 秒內得到新結果（SC-007）
+- [X] T023 [US3] 寫 E2E：只用鍵盤完成「放入 → 裁切 → 旋轉 → 復原 → 對比 → 複製」；淺色與暗色的 axe 檢查零違規；360 px 寬時沒有水平捲軸；按 ? 會開啟快捷鍵說明（SC-005）
+- [X] T024 [US3] 寫 `@perf` E2E：12MP 圖片旋轉後 100 ms 內預覽更新（SC-004，在頁面中以 performance 標記量測）；編輯後 3 秒內得到新結果（SC-007）
 
 ---
 
 ## Phase 6: Polish
 
-- [ ] T025 [P] 更新 001 的 E2E，使它符合新版面（並排比較改成畫布加對比滑桿），沿用 001 合約的 testid
+- [X] T025 [P] 更新 001 的 E2E，使它符合新版面（並排比較改成畫布加對比滑桿），沿用 001 合約的 testid
 - [ ] T026 執行 `npm run verify` 全部通過；`npm run size` 確認仍在 200 KB 預算內
 - [ ] T027 在 quickstart.md 標註實際結果；交給 `/knowie-judge` 收尾
 

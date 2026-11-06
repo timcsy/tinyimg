@@ -53,6 +53,9 @@ export function createCompressor(
   let nextId = 1
   let currentCompress: number | null = null
   let worker: WorkerLike | null = null
+  // 同一個 Blob 給同一個 key，讓 worker 沿用快取的解碼結果
+  const fileKeys = new WeakMap<Blob, number>()
+  let nextFileKey = 1
 
   const ensureWorker = (): WorkerLike => {
     if (worker) return worker
@@ -97,6 +100,11 @@ export function createCompressor(
       if (currentCompress !== null) supersede(currentCompress)
       const id = nextId++
       currentCompress = id
+      let fileKey = fileKeys.get(file)
+      if (fileKey === undefined) {
+        fileKey = nextFileKey++
+        fileKeys.set(file, fileKey)
+      }
       return new Promise<CompressOutcome>((resolve, reject) => {
         const p: Pending = { resolve: resolve as (v: unknown) => void, reject, onPreview }
         p.timer = setTimeout(restart, timeoutMs)
@@ -112,6 +120,7 @@ export function createCompressor(
               request: { ...req, id },
               ...(edit ? { edit } : {}),
               ...(onPreview ? { wantPreview: true } : {}),
+              fileKey,
             },
             [bytes],
           )

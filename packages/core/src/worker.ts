@@ -23,6 +23,8 @@ export type WorkerInMessage =
       edit?: EditState
       /** 解碼後先回傳預覽點陣圖，主執行緒不必再解碼一次 */
       wantPreview?: boolean
+      /** 同一個檔案的識別碼；相同時沿用快取的解碼結果（例如每次編輯） */
+      fileKey?: number
     }
   | { type: 'to-png'; id: number; bytes: ArrayBuffer; mimeType: string }
 
@@ -60,6 +62,8 @@ const toArrayBuffer = (u: Uint8Array): ArrayBuffer =>
 /** 建立訊息處理函式；與 self 綁定在 worker-entry.ts，方便在 Node 中測試 */
 export function createHandler(deps: WorkerDeps) {
   let latest = 0
+  // 最近一個檔案的解碼結果：每次編輯都會重送同一個檔案，不必再解碼一次 12MP
+  let cache: { key: number; img: RawImage } | null = null
   return async function handle(msg: WorkerInMessage, post: (m: WorkerOutMessage) => void) {
     if (msg.type === 'to-png') {
       try {
@@ -84,10 +88,19 @@ export function createHandler(deps: WorkerDeps) {
 
     const bytes = new Uint8Array(file.bytes)
     let img: RawImage
-    try {
-      img = await deps.decode(bytes, file.mimeType)
-    } catch {
-      return fail(ERR.decode)
+    const cached = msg.fileKey !== undefined && cache?.key === msg.fileKey ? cache.img : null
+    if (cached) img = cached
+    else {
+      try {
+        img = await deps.decode(bytes, file.mimeType)
+      } catch {
+        return fail(ERR.decode)
+      }
+      if (msg.fileKey !== undefined) {
+        // 新檔案取代快取時，才釋放舊的解碼資源
+        if (cache) deps.release?.(cache.img)
+        cache = { key: msg.fileKey, img }
+      }
     }
     const decoded = img
     try {
@@ -136,8 +149,8 @@ export function createHandler(deps: WorkerDeps) {
         fail(ERR.internal)
       }
     } finally {
-      // 釋放解碼時保留的資源（例如瀏覽器中的 ImageBitmap）
-      deps.release?.(decoded)
+      // 沒有快取時，處理結束就釋放解碼資源（例如瀏覽器中的 ImageBitmap）
+      if (cache?.img !== decoded) deps.release?.(decoded)
     }
   }
 }

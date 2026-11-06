@@ -79,3 +79,11 @@
 - **量測過的替代方案**：預覽和壓縮並行、從保留的 bitmap 縮小、用 OffscreenCanvas 縮小。在 Firefox 上都更慢（4 到 7 秒），
   原因是和壓縮在同一個 worker 執行緒互搶。數據見 `knowledge/draft/2026-11-06-SC-003在Firefox與WebKit的預算.md`。
 - **待決定**：Firefox 和 WebKit 是否也以 3 秒驗收（目前暫定 5 秒作為回歸防線），見上述 draft。
+
+## R9. Worker 快取解碼結果（2026-11-06）
+
+- **問題**：每次編輯都把整個檔案重送給 worker 並重新解碼；12MP 在 Firefox 上，SC-007（編輯後到新結果）要 6.72 秒。
+- **Decision**：client 以 `WeakMap<Blob, number>` 給每個檔案一個 `fileKey`。worker 用 key 快取最近一個檔案的解碼結果，
+  key 相同時跳過解碼；快取只在被新檔案取代時才 `release`。檔案位元組仍然每次傳送（原圖已符合目標的判斷和 GIF 偵測需要用到，
+  而且它比解碼便宜得多），這樣 worker 逾時重建、快取消失時也不會出錯。
+- **結果**：SC-007 的 Chromium、Firefox、WebKit 從 2.46、6.72、3.51 秒降到 2.01、4.16、2.39 秒（量測時機器負載很高，只能當相對比較）。
