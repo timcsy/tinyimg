@@ -8,10 +8,10 @@ description: "004 瀏覽器外掛 的任務清單"
 
 ## Phase 1: 共用編輯器（packages/ui）
 
-- [ ] T001 建立 `packages/ui`（`@tinyimg/ui`，依賴 core、editor、react），把 `apps/web/src/App.tsx`、`src/lib/*`、`src/app.css` 搬過去，`App` 改名為 `TinyImgApp` 並加上 `incoming` prop；`apps/web/test`（單元測試與元件測試）一起搬到 `packages/ui/test`；調整 tsconfig、vitest 設定與 scripts
-- [ ] T002 在 `packages/ui/test/components/TinyImgApp.test.tsx` 寫測試：`incoming` 的 key 改變時會載入新圖片（顯示「處理中」，接著出現結果）；相同的 key 不會重複載入
-- [ ] T003 實作 `incoming`，讓 T002 通過；`apps/web/src/main.tsx` 改為使用 `@tinyimg/ui`
-- [ ] T004 跑 `apps/web` 的 E2E：不修改任何測試即全部通過（SC-003）
+- [X] T001 建立 `packages/ui`（`@tinyimg/ui`，依賴 core、editor、react），把 `apps/web/src/App.tsx`、`src/lib/*`、`src/app.css` 搬過去，`App` 改名為 `TinyImgApp` 並加上 `incoming` prop；`apps/web/test`（單元測試與元件測試）一起搬到 `packages/ui/test`；調整 tsconfig、vitest 設定與 scripts
+- [X] T002 在 `packages/ui/test/components/TinyImgApp.test.tsx` 寫測試：`incoming` 的 key 改變時會載入新圖片（顯示「處理中」，接著出現結果）；相同的 key 不會重複載入
+- [X] T003 實作 `incoming`，讓 T002 通過；`apps/web/src/main.tsx` 改為使用 `@tinyimg/ui`
+- [X] T004 跑 `apps/web` 的 E2E：不修改任何測試即全部通過（SC-003）
 
 ## Phase 2: User Story 1 — 截圖（P1）
 

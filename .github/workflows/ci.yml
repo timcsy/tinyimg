@@ -34,7 +34,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox webkit
       - name: Component tests
-        run: npm run test:components -w @tinyimg/web
+        run: npm run test:components -w @tinyimg/ui
       - name: Build
         run: npm run build
       - name: Bundle budget (first-load JS <= 200 KB gzip)

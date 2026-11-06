@@ -4,12 +4,5 @@
     "jsx": "react-jsx",
     "types": ["node", "vite/client"]
   },
-  "include": [
-    "src",
-    "test",
-    "e2e",
-    "vite.config.ts",
-    "vitest.components.config.ts",
-    "playwright.config.ts"
-  ]
+  "include": ["src", "e2e", "vite.config.ts", "playwright.config.ts"]
 }

@@ -18,6 +18,7 @@ import { commandFor, isTextTarget } from './lib/shortcuts'
 import { t } from './lib/strings'
 import { useEditor } from './lib/useEditor'
 import { createWorkspace, type Settings, type WorkspaceState } from './lib/workspace'
+import './app.css'
 
 type Done = Extract<WorkspaceState, { kind: 'done' }> & { url: string }
 
@@ -30,7 +31,13 @@ const RATIO_LABEL: Record<RatioOption, string> = {
   '16:9': '16:9',
 }
 
-export default function App() {
+/** 由外部（例如瀏覽器外掛）送入的圖片；key 改變時等同放入新圖片 */
+export interface Incoming {
+  file: File
+  key: string
+}
+
+export default function TinyImgApp({ incoming = null }: { incoming?: Incoming | null }) {
   const [compressor] = useState(() => createCompressor())
   const [view, setView] = useState<WorkspaceState>({ kind: 'idle' })
   const [last, setLast] = useState<Done | null>(null)
@@ -137,6 +144,14 @@ export default function App() {
     },
     [ctl, editor, settings, ws],
   )
+
+  // 外部送入的圖片（例如外掛的截圖）：只在 key 改變時放入，避免同一張圖重複載入
+  const lastIncoming = useRef<string | null>(null)
+  useEffect(() => {
+    if (!incoming || incoming.key === lastIncoming.current) return
+    lastIncoming.current = incoming.key
+    void onFile(incoming.file)
+  }, [incoming, onFile])
 
   // 整個頁面都可以貼上新圖片
   useEffect(() => {
