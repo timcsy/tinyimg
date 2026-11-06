@@ -116,3 +116,27 @@ test('編輯器頁面通過無障礙檢查（SC-007）', async ({ context, sw, s
   expect(r.violations).toEqual([])
   void site
 })
+
+// 側邊欄開不起來（例如沒有使用者手勢）時，不能什麼都不做：截圖完成後改用新分頁開啟（原則 2：做不到就明說）。
+// 也涵蓋 CI 上的競態：設定還沒生效時，背景以為要開側邊欄（2026-11-07 PR #1 的 CI 發現）
+test('側邊欄開不起來時改用新分頁開啟編輯器，截到的仍是原本的頁面', async ({
+  context,
+  sw,
+  site,
+}) => {
+  await sw.evaluate(() => chrome.storage.local.set({ settings: { openIn: 'sidepanel' } }))
+  await expect
+    .poll(() =>
+      sw.evaluate(
+        async () =>
+          ((await chrome.storage.local.get('settings')).settings as { openIn?: string } | undefined)
+            ?.openIn,
+      ),
+    )
+    .toBe('sidepanel')
+  const editorPromise = context.waitForEvent('page')
+  await run(sw, 'captureVisible') // 從 service worker 直接呼叫：沒有使用者手勢，sidePanel.open 會失敗
+  const editor = await editorPromise
+  await expect(editor.getByTestId('output-size')).toHaveText('1000 × 700', { timeout: 10_000 })
+  void site
+})

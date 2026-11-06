@@ -5,11 +5,16 @@ import { readOpenIn, type OpenIn } from './lib/settings'
 
 // 預先載入設定：sidePanel.open 必須在使用者操作的同步呼叫內執行，不能先 await 讀設定
 let openIn: OpenIn = 'sidepanel'
+let changedSinceLoad = false
 void chrome.storage.local.get('settings').then(({ settings }) => {
-  openIn = readOpenIn(settings)
+  // 讀取期間設定已經改過時，以較新的變更為準
+  if (!changedSinceLoad) openIn = readOpenIn(settings)
 })
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.settings) openIn = readOpenIn(changes.settings.newValue)
+  if (area === 'local' && changes.settings) {
+    changedSinceLoad = true
+    openIn = readOpenIn(changes.settings.newValue)
+  }
 })
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -29,13 +34,27 @@ chrome.runtime.onInstalled.addListener(() => {
  * 開啟編輯器。
  * - 側邊欄：必須在使用者操作的同步呼叫內開啟（sidePanel.open 的限制），所以要在截圖之前呼叫 openPanel。
  * - 新分頁：必須在截圖之後才開啟，否則新分頁會變成作用中的分頁，截到的是編輯器自己（外掛 E2E 發現）。
+ * - 側邊欄開不起來（例如沒有使用者手勢）時，不能什麼都不做：呼叫端在截圖之後改開新分頁
+ *   （原則 2；2026-11-07 PR #1 的 CI 發現）。
+ *
+ * 回傳 null 表示不使用側邊欄；否則回傳「側邊欄是否成功開啟」。
  */
-function openPanel(tab: chrome.tabs.Tab, query = ''): boolean {
-  if (openIn !== 'sidepanel' || tab.id === undefined) return false
+function openPanel(tab: chrome.tabs.Tab, query = ''): Promise<boolean> | null {
+  if (openIn !== 'sidepanel' || tab.id === undefined) return null
   const path = `editor.html${query}`
   void chrome.sidePanel.setOptions({ tabId: tab.id, path, enabled: true })
-  void chrome.sidePanel.open({ tabId: tab.id })
-  return true
+  return chrome.sidePanel.open({ tabId: tab.id }).then(
+    () => true,
+    () => false,
+  )
+}
+/** 側邊欄沒有開啟時才開新分頁；要在截圖之後呼叫 */
+async function openTabUnlessPanel(
+  tab: chrome.tabs.Tab,
+  panel: Promise<boolean> | null,
+  query = '',
+) {
+  if (!panel || !(await panel)) openTab(tab, query)
 }
 function openTab(tab: chrome.tabs.Tab, query = '') {
   void chrome.tabs.create({
@@ -44,7 +63,7 @@ function openTab(tab: chrome.tabs.Tab, query = '') {
   })
 }
 function openEditor(tab: chrome.tabs.Tab, query = '') {
-  if (!openPanel(tab, query)) openTab(tab, query)
+  void openTabUnlessPanel(tab, openPanel(tab, query), query)
 }
 
 async function blobToDataUrl(blob: Blob): Promise<string> {
@@ -96,17 +115,17 @@ async function capture(tab: chrome.tabs.Tab): Promise<string | null> {
 }
 
 export async function captureVisible(tab: chrome.tabs.Tab) {
-  const inPanel = openPanel(tab)
+  const panel = openPanel(tab)
   const dataUrl = await capture(tab)
   if (dataUrl) await store({ dataUrl, source: 'visible', name: `screenshot-${stamp()}` })
   // 截圖失敗時 capture() 已寫入錯誤訊息；仍開啟編輯器讓使用者看到
-  if (!inPanel) openTab(tab)
+  await openTabUnlessPanel(tab, panel)
 }
 
 export async function captureRegion(tab: chrome.tabs.Tab) {
   if (tab.id === undefined) return
   // 側邊欄必須在命令當下開啟：等使用者框選完，使用者操作的時效已過，sidePanel.open 會失敗
-  const inPanel = openPanel(tab)
+  const panel = openPanel(tab)
   let selection: RegionSelection | null
   try {
     await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['overlay.js'] })
@@ -118,13 +137,13 @@ export async function captureRegion(tab: chrome.tabs.Tab) {
     selection = (res?.result ?? null) as RegionSelection | null
   } catch {
     await notify(CANNOT_CAPTURE)
-    if (!inPanel) openTab(tab)
+    await openTabUnlessPanel(tab, panel)
     return
   }
   if (!selection) return // 使用者取消
   const dataUrl = await capture(tab)
   if (!dataUrl) {
-    if (!inPanel) openTab(tab)
+    await openTabUnlessPanel(tab, panel)
     return
   }
   const bmp = await createImageBitmap(await (await fetch(dataUrl)).blob())
@@ -144,7 +163,7 @@ export async function captureRegion(tab: chrome.tabs.Tab) {
   )
   const cropped = await blobToDataUrl(await c.convertToBlob({ type: 'image/png' }))
   await store({ dataUrl: cropped, source: 'region', name: `screenshot-${stamp()}` })
-  if (!inPanel) openTab(tab)
+  await openTabUnlessPanel(tab, panel)
 }
 
 export function editImage(tab: chrome.tabs.Tab, srcUrl: string) {
