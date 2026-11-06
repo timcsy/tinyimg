@@ -43,5 +43,5 @@ description: "004 瀏覽器外掛 的任務清單"
 
 ## Phase 6: Polish
 
-- [ ] T015 `npm run verify` 加入外掛的建置、單元測試和 E2E；ci.yml 同步；全部通過
-- [ ] T016 在 quickstart 標註結果；更新 vision；在 draft 記錄「上架商店」需要使用者確認；交給 `/knowie-judge` 收尾
+- [X] T015 `npm run verify` 加入外掛的建置、單元測試和 E2E；ci.yml 同步；全部通過
+- [X] T016 在 quickstart 標註結果；更新 vision；在 draft 記錄「上架商店」需要使用者確認；交給 `/knowie-judge` 收尾

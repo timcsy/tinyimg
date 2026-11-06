@@ -27,7 +27,9 @@
   [draft](draft/2026-11-06-對外發佈需要使用者確認.md)。
 - 階段 1（`specs/002-editor-canvas/`、`specs/003-annotations/`）已完成：非破壞式編輯、註解工具、畫布介面、
   快捷鍵、對比滑桿；UI 框架改為 React 19。Firefox 的效能門檻待使用者決定（見
-  [draft](draft/2026-11-06-SC-003在Firefox與WebKit的預算.md)）。下一步是階段 2：瀏覽器外掛。
+  [draft](draft/2026-11-06-SC-003在Firefox與WebKit的預算.md)）。
+- 階段 2（`specs/004-browser-extension/`）的程式已完成：編輯器抽成 `packages/ui`，Chrome/Edge 外掛可截圖、框選、右鍵編輯；
+  剩下的兩條成功標準需要 push 與手動驗證側邊欄。
 
 ## 架構
 
@@ -73,11 +75,11 @@
 前置條件：階段 1
 
 **成功標準：**
-- [ ] 截取目前分頁或框選區域，直接進入編輯器
-- [ ] 在網頁圖片上按右鍵選「用 TinyImg 編輯」可以開啟
-- [ ] 支援側邊欄和快捷鍵叫出
-- [ ] 推送 `v*` tag 會自動產生外掛 zip 和 GitHub Release；外掛核心流程有 E2E 測試
-- [ ] 每個申請的權限都有記錄用途
+- [x] 截取目前分頁或框選區域，直接進入編輯器（2026-11-06，spec 004 的 E2E；可見區域 401 ms）
+- [x] 在網頁圖片上按右鍵選「用 TinyImg 編輯」可以開啟（2026-11-06，同網域與跨網域圖片都有 E2E）
+- [ ] 支援側邊欄和快捷鍵叫出（已實作；側邊欄無法自動化測試，待手動驗證，見 [draft](draft/2026-11-06-對外發佈需要使用者確認.md) 第 6 項）
+- [ ] 推送 `v*` tag 會自動產生外掛 zip 和 GitHub Release；外掛核心流程有 E2E 測試（E2E 與打包腳本已完成；`release.yml` 尚未在 GitHub 上執行過，待 push）
+- [x] 每個申請的權限都有記錄用途（2026-11-06，`apps/extension/PERMISSIONS.md`）
 
 ### 階段 3：擴充
 
