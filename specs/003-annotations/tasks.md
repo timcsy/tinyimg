@@ -41,7 +41,7 @@ description: "003 註解工具 的任務清單"
 ## Phase 6: Polish
 
 - [X] T016 執行 `npm run verify` 全部通過；`npm run size` 確認 ≤ 200 KB
-- [ ] T017 在 quickstart.md 標註結果；更新 vision 的階段 1 成功標準；交給 `/knowie-judge` 收尾
+- [X] T017 在 quickstart.md 標註結果；更新 vision 的階段 1 成功標準；交給 `/knowie-judge` 收尾
 
 ## Dependencies
 
