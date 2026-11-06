@@ -21,13 +21,13 @@ description: "階段 0：地基 的任務清單"
 
 ## Phase 1: Setup（專案初始化）
 
-- [ ] T001 在 repo 根目錄建立 `package.json`：`"private": true`、`"workspaces": ["packages/*", "apps/*"]`、`"engines": {"node": ">=22.12"}`；scripts 包含 `dev`、`build`、`typecheck`、`lint`、`format`、`format:check`、`test`、`test:coverage`、`e2e`、`size`，並加入 `.nvmrc`（內容為 `24`）
-- [ ] T002 建立 `tsconfig.base.json`：`strict: true`、`noUncheckedIndexedAccess: true`、`module: "ESNext"`、`moduleResolution: "Bundler"`、`target: "ES2022"`、`lib: ["ES2022", "DOM", "DOM.Iterable", "WebWorker"]`
-- [ ] T003 [P] 建立 `eslint.config.js`（flat config，使用 typescript-eslint 與 eslint-plugin-svelte）、`.prettierrc`（加上 prettier-plugin-svelte）、`.prettierignore`，並更新 `.gitignore`，加入 `node_modules/`、`dist/`、`coverage/`、`playwright-report/`、`test-results/`
-- [ ] T004 [P] 建立 `packages/core/package.json`：name 為 `@tinyimg/core`，`"type": "module"`，exports 包含 `.`、`./worker`、`./client`；建立 `packages/core/tsconfig.json` 與 `packages/core/vitest.config.ts`（Node 環境；v8 覆蓋率門檻：lines、functions、branches、statements 都是 90）
-- [ ] T005 [P] 建立 `apps/web/package.json`（name 為 `@tinyimg/web`，依賴 `@tinyimg/core`）、`apps/web/vite.config.ts`（使用 Svelte plugin，`base: '/tinyimg/'`，`worker.format: 'es'`）、`apps/web/tsconfig.json`、`apps/web/index.html`、`apps/web/src/main.ts`、`apps/web/src/App.svelte`（空殼）
-- [ ] T006 安裝相依套件並產生 `package-lock.json`。開發用：typescript@~6.0、vite@^8、vitest@^5、@vitest/coverage-v8@^5、svelte@^5、@sveltejs/vite-plugin-svelte、svelte-check、eslint@^10、typescript-eslint、eslint-plugin-svelte、prettier、prettier-plugin-svelte、@playwright/test、@axe-core/playwright。core 執行期：@jsquash/oxipng、@jsquash/jpeg、@jsquash/webp、image-q
-- [ ] T007 確認 `npm run typecheck`、`npm run lint`、`npm run build` 在空殼狀態下都能通過
+- [X] T001 在 repo 根目錄建立 `package.json`：`"private": true`、`"workspaces": ["packages/*", "apps/*"]`、`"engines": {"node": ">=22.12"}`；scripts 包含 `dev`、`build`、`typecheck`、`lint`、`format`、`format:check`、`test`、`test:coverage`、`e2e`、`size`，並加入 `.nvmrc`（內容為 `24`）
+- [X] T002 建立 `tsconfig.base.json`：`strict: true`、`noUncheckedIndexedAccess: true`、`module: "ESNext"`、`moduleResolution: "Bundler"`、`target: "ES2022"`、`lib: ["ES2022", "DOM", "DOM.Iterable", "WebWorker"]`
+- [X] T003 [P] 建立 `eslint.config.js`（flat config，使用 typescript-eslint 與 eslint-plugin-svelte）、`.prettierrc`（加上 prettier-plugin-svelte）、`.prettierignore`，並更新 `.gitignore`，加入 `node_modules/`、`dist/`、`coverage/`、`playwright-report/`、`test-results/`
+- [X] T004 [P] 建立 `packages/core/package.json`：name 為 `@tinyimg/core`，`"type": "module"`，exports 包含 `.`、`./worker`、`./client`；建立 `packages/core/tsconfig.json` 與 `packages/core/vitest.config.ts`（Node 環境；v8 覆蓋率門檻：lines、functions、branches、statements 都是 90）
+- [X] T005 [P] 建立 `apps/web/package.json`（name 為 `@tinyimg/web`，依賴 `@tinyimg/core`）、`apps/web/vite.config.ts`（使用 Svelte plugin，`base: '/tinyimg/'`，`worker.format: 'es'`）、`apps/web/tsconfig.json`、`apps/web/index.html`、`apps/web/src/main.ts`、`apps/web/src/App.svelte`（空殼）
+- [X] T006 安裝相依套件並產生 `package-lock.json`。開發用：typescript@~6.0、vite@^8、vitest@^5、@vitest/coverage-v8@^5、svelte@^5、@sveltejs/vite-plugin-svelte、svelte-check、eslint@^10、typescript-eslint、eslint-plugin-svelte、prettier、prettier-plugin-svelte、@playwright/test、@axe-core/playwright。core 執行期：@jsquash/oxipng、@jsquash/jpeg、@jsquash/webp、image-q
+- [X] T007 確認 `npm run typecheck`、`npm run lint`、`npm run build` 在空殼狀態下都能通過
 
 ---
 
