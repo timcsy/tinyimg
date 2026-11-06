@@ -15,6 +15,7 @@ TinyImg 正在全面重構：要做成本機處理的圖片標註與壓縮工具
 - 依 Spec Kit 流程開發：`/speckit-specify` → `/speckit-clarify` → `/speckit-plan` →
   `/speckit-tasks` → `/speckit-implement`。
 - 採用 TDD：先寫會失敗的測試，再實作；CI 全綠才算完成。
+- commit 前執行 `npm run verify`（與 CI 相同的完整關卡），不要只跑剛改過的部分。
 - 規格文件和回答一律使用繁體中文；程式碼識別字和技術名詞保留原文。
 
 ## 關於根目錄的舊版檔案

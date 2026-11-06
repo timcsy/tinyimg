@@ -30,7 +30,8 @@ npm run dev          # http://localhost:5173/tinyimg/
 | `npm test` | 所有單元與整合測試 |
 | `npm run test:coverage` | core 覆蓋率（門檻 90%） |
 | `npm run build` / `npm run size` | 建置，並檢查首次載入 JS ≤ 200 KB（gzip） |
-| `npm run e2e` | Playwright E2E（第一次執行前先 `npx playwright install chromium`） |
+| `npm run e2e` | Playwright E2E：Chromium、Firefox、WebKit（第一次執行前先 `npx playwright install chromium firefox webkit`） |
+| `npm run verify` | 依 CI 的順序跑完所有關卡；commit 前執行 |
 
 開發採用 TDD 和 [Spec Kit](https://github.com/github/spec-kit) 的規格流程。規則見
 [`.specify/memory/constitution.md`](.specify/memory/constitution.md)，專案背後的「為什麼」見 [`knowledge/`](knowledge/)。

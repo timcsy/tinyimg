@@ -15,7 +15,7 @@ export const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), 'generated
 
 /** 用 core 的確定性產生器輸出 E2E 測試圖片（不進版本控制） */
 export default async function globalSetup() {
-  if (existsSync(join(FIXTURES, 'done-v2'))) return
+  if (existsSync(join(FIXTURES, 'done-v3'))) return
   mkdirSync(FIXTURES, { recursive: true })
   await initWasmForNode()
   writeFileSync(join(FIXTURES, 'photo.jpg'), await encodeJpeg(photo(2400, 1600, 11), 0.95))
@@ -23,11 +23,13 @@ export default async function globalSetup() {
   writeFileSync(join(FIXTURES, 'transparent.png'), await encodePng(transparent(400, 300), null))
   writeFileSync(join(FIXTURES, 'small.png'), await encodePng(transparent(40, 30), null))
   writeFileSync(join(FIXTURES, 'noise.png'), await encodePng(noise(1200, 1200), null))
+  // SC-003：約 12 百萬像素的照片
+  writeFileSync(join(FIXTURES, 'photo-12mp.jpg'), await encodeJpeg(photo(4240, 2832, 13), 0.92))
   writeFileSync(join(FIXTURES, 'anim.gif'), gifBytes(2))
   writeFileSync(join(FIXTURES, 'not-image.txt'), 'hello')
   writeFileSync(
     join(FIXTURES, 'corrupt.png'),
     new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3, 4, 5]),
   )
-  writeFileSync(join(FIXTURES, 'done-v2'), '')
+  writeFileSync(join(FIXTURES, 'done-v3'), '')
 }

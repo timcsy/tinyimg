@@ -41,7 +41,9 @@ npm run dev        # 啟動 apps/web，開啟 http://localhost:5173/tinyimg/
 | SC-001、SC-002 | 整合測試通過；10 張截圖至少 9 張達成，且多數需要量化或縮尺寸（測試具鑑別力） |
 | web 單元測試、size 腳本測試 | 20 個、5 個通過 |
 | 首次載入 JS | 19.7 KB（gzip）／預算 200 KB |
-| E2E | 20 個通過（Chromium） |
+| E2E | 63 個通過（Chromium、Firefox、WebKit；其中 6 個 `@serial` 以單一 worker 執行） |
+| SC-003（12MP 照片 ≤ 3 秒） | Chromium 2.06 秒、Firefox 2.15 秒、WebKit 2.43 秒 |
+| SC-004（無 > 200 ms 長任務） | Chromium 0 個；Firefox、WebKit 不支援 longtask API，無法量測 |
 
 尚未驗證：GitHub 上實際執行 CI 與 Pages 部署（需要 push，見 `knowledge/draft/2026-11-06-對外發佈需要使用者確認.md`）；
-actionlint；Firefox 與 Safari（階段 0 的 E2E 只跑 Chromium）。
+actionlint；SC-004 在 Firefox、WebKit 上的量測。

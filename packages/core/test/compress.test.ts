@@ -113,7 +113,7 @@ describe('compressToTarget：有損格式', () => {
 })
 
 describe('compressToTarget：PNG', () => {
-  it('依序嘗試 無損 → 256 → 128 色，取第一個符合的', async () => {
+  it('先試 256 色；不符合再往下試 128 色（無損不會比量化小，不必先試）', async () => {
     const codecs = fakeCodecs({})
     const r = await compressToTarget(
       blank(1000, 1000),
@@ -121,7 +121,7 @@ describe('compressToTarget：PNG', () => {
       req({ format: 'png' }),
       codecs,
     )
-    expect(codecs.calls.map((c) => c.colors)).toEqual([null, 256, 128])
+    expect(codecs.calls.map((c) => c.colors)).toEqual([256, 128])
     expect(r).toMatchObject({
       status: 'achieved',
       colors: 128,
@@ -129,13 +129,15 @@ describe('compressToTarget：PNG', () => {
       mimeType: 'image/png',
     })
   })
-  it('無損就符合時 colors 為 null', async () => {
+  it('256 色符合時再試無損；無損也符合就用無損（畫質較好），colors 為 null', async () => {
+    const codecs = fakeCodecs({})
     const r = await compressToTarget(
       blank(100, 100),
       source({ mimeType: 'image/png' }),
       req({ format: 'png' }),
-      fakeCodecs({}),
+      codecs,
     )
+    expect(codecs.calls.map((c) => c.colors)).toEqual([256, null])
     expect(r.colors).toBeNull()
     expect(r.status).toBe('achieved')
   })
@@ -147,11 +149,11 @@ describe('compressToTarget：PNG', () => {
       req({ format: 'png', targetBytes: 400 * KB }),
       codecs,
     )
-    expect(codecs.calls.slice(0, 4).map((c) => c.colors)).toEqual([null, 256, 128, 64])
+    expect(codecs.calls[0]!.colors).toBe(256)
     expect(r.status).toBe('achieved')
     expect(r.width).toBeLessThan(1000)
   })
-  it('縮尺寸後的輪次不再嘗試無損（大尺寸 64 色都不行，無損更不可能）', async () => {
+  it('256 色不符合時完全不試無損（包含縮尺寸後的輪次）', async () => {
     const codecs = fakeCodecs({})
     await compressToTarget(
       blank(1000, 1000),
@@ -159,9 +161,27 @@ describe('compressToTarget：PNG', () => {
       req({ format: 'png', targetBytes: 400 * KB }),
       codecs,
     )
-    const later = codecs.calls.slice(4)
+    const later = codecs.calls.filter((c) => c.width < 1000)
     expect(later.length).toBeGreaterThan(0)
-    expect(later.every((c) => c.colors !== null)).toBe(true)
+    expect(codecs.calls.filter((c) => c.colors === null && c.width === 1000)).toEqual([])
+  })
+  it('量化結果超過目標 2 倍時，不再試更少色數，直接縮尺寸（減色最多省 25–40%，追不上）', async () => {
+    // 256 色 = 1.5 bytes/px；1000×1000 → 1.5 MB，目標 400 KB 的 3.7 倍
+    const codecs = fakeCodecs({})
+    await compressToTarget(
+      blank(1000, 1000),
+      source(),
+      req({ format: 'png', targetBytes: 400 * KB }),
+      codecs,
+    )
+    const firstScale = codecs.calls.filter((c) => c.width === 1000)
+    expect(firstScale.map((c) => c.colors)).toEqual([256])
+  })
+  it('接近目標（2 倍內）時仍會往下試更少色數', async () => {
+    const codecs = fakeCodecs({})
+    // 1000×1000：256 色 1.5 MB、128 色 1.0 MB、目標 1 MB → 256 色在 2 倍內，應繼續試 128
+    await compressToTarget(blank(1000, 1000), source(), req({ format: 'png' }), codecs)
+    expect(codecs.calls.map((c) => c.colors)).toEqual([256, 128])
   })
   it('auto + 透明 → PNG，保留透明', async () => {
     const r = await compressToTarget(
@@ -264,7 +284,7 @@ describe('compressToTarget：取消', () => {
     let n = 0
     await expect(
       compressToTarget(blank(1000, 1000), source(), req({ format: 'png' }), fakeCodecs({}), {
-        isCancelled: () => ++n > 2,
+        isCancelled: () => ++n > 1,
       }),
     ).rejects.toBeInstanceOf(CancelledError)
   })

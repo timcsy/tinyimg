@@ -3,11 +3,13 @@ import { choose, waitForResult } from './helpers'
 
 test.beforeEach(async ({ page }) => page.goto('./'))
 
-test('複製到剪貼簿會寫入 PNG', async ({ page }) => {
+test('複製到剪貼簿會寫入 PNG', async ({ page, browserName }) => {
   await choose(page, 'photo.jpg')
   await waitForResult(page)
   await page.getByRole('button', { name: '複製到剪貼簿' }).click()
   await expect(page.getByRole('status')).toContainText('已複製', { timeout: 15_000 })
+  // 只有 Chromium 的自動化環境允許讀回剪貼簿；其他瀏覽器以成功通知為準
+  if (browserName !== 'chromium') return
   const types = await page.evaluate(async () => (await navigator.clipboard.read())[0]?.types ?? [])
   expect(types).toContain('image/png')
 })

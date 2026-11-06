@@ -42,7 +42,10 @@ export async function paste(page: Page, name: string) {
       const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))
       const dt = new DataTransfer()
       dt.items.add(new File([bytes], name, { type }))
-      document.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true }))
+      // Firefox 會忽略建構參數中的 clipboardData，所以直接掛到事件上（真實貼上時瀏覽器會自己提供）
+      const ev = new ClipboardEvent('paste', { bubbles: true, cancelable: true })
+      Object.defineProperty(ev, 'clipboardData', { value: dt })
+      document.dispatchEvent(ev)
     },
     { b64, name, type: mimeOf(name) },
   )

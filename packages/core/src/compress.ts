@@ -14,7 +14,7 @@ import {
   type Warning,
 } from './types'
 
-const PNG_LADDER: (number | null)[] = [null, 256, 128, 64]
+const PNG_COLORS = [256, 128, 64] as const
 
 interface Attempt {
   bytes: Uint8Array
@@ -69,20 +69,29 @@ export async function compressToTarget(
   })
 
   /** 在目前尺寸下嘗試；回傳 { fit, smallest } */
-  const tryAtSize = async (
-    cur: RawImage,
-    firstRound: boolean,
-  ): Promise<{ fit: Attempt | null; smallest: Attempt }> => {
+  const tryAtSize = async (cur: RawImage): Promise<{ fit: Attempt | null; smallest: Attempt }> => {
     if (format === 'png') {
       let smallest: Attempt | null = null
-      // 縮尺寸後的輪次跳過無損：大尺寸時連 64 色都超標，無損版本不可能更小
-      for (const colors of firstRound ? PNG_LADDER : PNG_LADDER.slice(1)) {
+      const encode = async (colors: number | null): Promise<Attempt> => {
         checkCancel()
         attempts += 1
         const bytes = await codecs.encodePng(cur, colors)
         const a: Attempt = { bytes, quality: null, colors, width: cur.width, height: cur.height }
         if (!smallest || bytes.length < smallest.bytes.length) smallest = a
-        if (bytes.length <= target) return { fit: a, smallest }
+        return a
+      }
+      // 無損 PNG 幾乎不會比量化後小，所以先試 256 色；256 色符合時才試無損（畫質較好）
+      for (const colors of PNG_COLORS) {
+        const a = await encode(colors)
+        if (a.bytes.length <= target) {
+          if (colors === PNG_COLORS[0]) {
+            const lossless = await encode(null)
+            if (lossless.bytes.length <= target) return { fit: lossless, smallest: smallest! }
+          }
+          return { fit: a, smallest: smallest! }
+        }
+        // 減少色數最多只能再省約 25–40%；超過目標 2 倍時追不上，直接縮尺寸
+        if (a.bytes.length > target * 2) break
       }
       return { fit: null, smallest: smallest! }
     }
@@ -101,7 +110,7 @@ export async function compressToTarget(
     return { fit: r.best ? wrap(r.best) : null, smallest: wrap(r.smallest) }
   }
 
-  const first = await tryAtSize(img, true)
+  const first = await tryAtSize(img)
 
   // 原圖本來就符合目標：重新編碼不比原圖小時，保留原圖
   const sameFormat = req.format === 'auto' || MIME[format] === source.mimeType
@@ -132,7 +141,7 @@ export async function compressToTarget(
     const resized = codecs.resize
       ? await codecs.resize(img, width, height)
       : boxResize(img, width, height)
-    const r = await tryAtSize(resized, false)
+    const r = await tryAtSize(resized)
     if (r.fit) return finish('achieved', r.fit)
     roundSmallest = r.smallest
     if (r.smallest.bytes.length < smallest.bytes.length) smallest = r.smallest

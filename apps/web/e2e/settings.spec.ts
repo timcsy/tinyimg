@@ -24,7 +24,7 @@ test('目標大小不合法時顯示提示', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText('50 到 10240')
 })
 
-test('無法達成時明確顯示，仍可下載', async ({ page }) => {
+test('無法達成時明確顯示，仍可下載 @serial', async ({ page }) => {
   await page.getByLabel('目標大小（KB）').fill('50')
   await page.getByLabel('輸出格式').selectOption('png')
   await choose(page, 'noise.png')
