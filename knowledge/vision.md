@@ -22,7 +22,7 @@
 - 所有分支都還在本機，沒有 push。剩下的成功標準都卡在需要使用者確認的對外動作：
   push 和 CI、Pages 部署、Release、側邊欄與分享選單的實機驗證、上架商店（見
   [draft](draft/2026-11-06-對外發佈需要使用者確認.md)）。
-- 尚未查明的問題：[Firefox 在 E2E 中誤報「有新版本」](draft/2026-11-07-Firefox誤報有新版本.md)。
+- 已解決、待整理進 episode：[Firefox 在 E2E 中誤報「有新版本」](draft/2026-11-07-Firefox誤報有新版本.md)。
 - 效能測試要不要改量工作量：[draft](draft/2026-11-06-效能測試改量工作量.md)。
 - Firefox 的效能門檻待使用者決定（見 [draft](draft/2026-11-06-SC-003在Firefox與WebKit的預算.md)）。
 - 等待確認是否寫進 experience 的教訓候選：[階段 0](draft/2026-11-06-階段0實作中浮現的教訓.md)、

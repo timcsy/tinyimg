@@ -11,6 +11,7 @@ class FakeSW extends EventTarget {
   }
 }
 class FakeReg extends EventTarget {
+  active: FakeSW | null = null
   installing: FakeSW | null = null
   waiting: FakeSW | null = null
 }
@@ -40,6 +41,7 @@ describe('watchForUpdate', () => {
 
   it('已有舊版本在控制頁面時，新版本安裝完成就提示', async () => {
     const { reg, container } = setup({ old: true })
+    reg.active = new FakeSW()
     const onWaiting = vi.fn()
     watchForUpdate(container as never, './sw.js', onWaiting)
     await flush()
@@ -52,6 +54,7 @@ describe('watchForUpdate', () => {
 
   it('註冊時已經有等待中的新版本（例如上次沒更新）→ 提示', async () => {
     const { reg, container } = setup({ old: true })
+    reg.active = new FakeSW()
     const waiting = new FakeSW()
     waiting.state = 'installed'
     reg.waiting = waiting
@@ -80,10 +83,24 @@ describe('watchForUpdate', () => {
     container.controller = first
     first.set('installed')
     expect(onWaiting).not.toHaveBeenCalled()
+    reg.active = first
     const next = new FakeSW()
     reg.installing = next
     reg.dispatchEvent(new Event('updatefound'))
     next.set('installed')
     expect(onWaiting).toHaveBeenCalledWith(next)
+  })
+
+  it('Firefox 的事件順序：updatefound 晚到，到達時第一次安裝的 SW 已經接管頁面 → 不提示', async () => {
+    const { reg, container } = setup(null)
+    const sw = new FakeSW()
+    reg.installing = sw // 註冊完成時第一次安裝已經在進行
+    const onWaiting = vi.fn()
+    watchForUpdate(container as never, './sw.js', onWaiting)
+    await flush()
+    container.controller = sw // 已經啟用並接管
+    reg.dispatchEvent(new Event('updatefound')) // 事件這時才送到頁面
+    sw.set('installed')
+    expect(onWaiting).not.toHaveBeenCalled()
   })
 })
