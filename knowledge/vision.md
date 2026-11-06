@@ -18,32 +18,25 @@
 
 ## 現狀
 
-- 舊版 v0（2025-08-03）：單頁 HTML、CSS、JS，從 CDN 載入 Bootstrap。可以上傳、貼上、
-  壓縮、複製、下載，但有已知缺陷：PNG 壓不下來、壓縮率可能顯示負數、Promise 可能永遠
-  不 resolve、有競態條件、透明背景轉成 JPEG 後變黑、CSS 載入順序錯誤。
-- 2026-11-06：決定全面重構，並裝好開發流程工具：Spec Kit（憲章 v1.0.0）和 knowie。
-- 階段 0（`specs/001-foundation/`）：壓縮核心和功能對等的網頁版已完成，本機測試全數通過；
-  CI/CD workflow 已寫好，還沒在 GitHub 上跑過。需要使用者確認的對外動作見
-  [draft](draft/2026-11-06-對外發佈需要使用者確認.md)。
-- 階段 1（`specs/002-editor-canvas/`、`specs/003-annotations/`）已完成：非破壞式編輯、註解工具、畫布介面、
-  快捷鍵、對比滑桿；UI 框架改為 React 19。Firefox 的效能門檻待使用者決定（見
-  [draft](draft/2026-11-06-SC-003在Firefox與WebKit的預算.md)）。
-- 階段 2（`specs/004-browser-extension/`）的程式已完成：編輯器抽成 `packages/ui`，Chrome/Edge 外掛可截圖、框選、右鍵編輯；
-  剩下的兩條成功標準需要 push 與手動驗證側邊欄。
-- 階段 3（`specs/005-pwa-batch/`）：PWA（離線、可安裝、分享目標）與批次處理已完成；剩下自動上架商店（需要使用者的帳號）。
+- 階段 1 已完成；階段 0、2、3 的程式都已完成，本機的 `npm run verify` 全綠（2026-11-06）。
+- 所有分支都還在本機，沒有 push。剩下的成功標準都卡在需要使用者確認的對外動作：
+  push 和 CI、Pages 部署、Release、側邊欄與分享選單的實機驗證、上架商店（見
+  [draft](draft/2026-11-06-對外發佈需要使用者確認.md)）。
+- Firefox 的效能門檻待使用者決定（見 [draft](draft/2026-11-06-SC-003在Firefox與WebKit的預算.md)）。
 
 ## 架構
 
 - **建置流程 + GitHub Actions 發佈**，取代只用 CDN 的做法。理由：MV3 外掛禁止遠端程式碼；
   lockfile 讓每次建置結果一致；打包後可以做最佳化。轉變的經過見
   [history/001](history/001-建置方式從只用CDN到打包加GitHub-Actions發佈.md)。
-- **monorepo**：`packages/core`（圖片處理，可在 Worker 中執行）、`packages/editor`（UI）、
-  `apps/web`、`apps/extension`。平台專屬的只有殼。（推導自原則 3）
+- **monorepo**：`packages/core`（圖片處理，可在 Worker 中執行）、`packages/editor`（編輯文件模型，不含 UI）、
+  `packages/ui`（React 編輯器，網頁版與外掛共用）、`apps/web`、`apps/extension`。平台專屬的只有殼。（推導自原則 3）
 - **非破壞式編輯**：原圖不動，編輯內容存成可序列化的文件模型，匯出時才合成。
 - **壓縮核心**：先對品質做二分搜尋，壓不下來再縮小尺寸；PNG 走量化。WASM codec
   延遲載入，候選方案是 jSquash。（推導自原則 2：做不到就明說）
 - UI 框架：React 19（2026-11-06 由 Svelte 5 改為 React，見 [history/005](history/005-UI框架從Svelte5到React.md)）。
-- 未決：畫布函式庫（Konva 或 Fabric，階段 1 決定）、部署網域（暫用 GitHub Pages 預設網址）。
+- 畫布：直接用原生 Canvas 2D，沒有採用 Konva 或 Fabric（階段 1 決定；註解在預覽與匯出共用同一個繪製函式）。
+- 未決：部署網域（暫用 GitHub Pages 預設網址）。
 
 ## 路線圖
 
@@ -87,6 +80,7 @@
 - [ ] 完成
 
 交付：PWA（離線、可安裝、出現在分享選單）、批次處理、自動上架商店。
+經過見 [episodes/2026-11-06-階段2與3外掛PWA與批次](episodes/2026-11-06-階段2與3外掛PWA與批次.md)。
 （Firefox 版外掛已否決，見 [history/006](history/006-否決Firefox版外掛.md)；網頁版仍支援 Firefox。）
 前置條件：階段 2
 
