@@ -67,8 +67,8 @@ description: "002 非破壞式編輯與畫布介面 的任務清單"
 ## Phase 6: Polish
 
 - [X] T025 [P] 更新 001 的 E2E，使它符合新版面（並排比較改成畫布加對比滑桿），沿用 001 合約的 testid
-- [ ] T026 執行 `npm run verify` 全部通過；`npm run size` 確認仍在 200 KB 預算內
-- [ ] T027 在 quickstart.md 標註實際結果；交給 `/knowie-judge` 收尾
+- [X] T026 執行 `npm run verify` 全部通過；`npm run size` 確認仍在 200 KB 預算內
+- [X] T027 在 quickstart.md 標註實際結果；交給 `/knowie-judge` 收尾
 
 ## 實作備註
 
