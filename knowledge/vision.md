@@ -83,18 +83,19 @@
 
 - [ ] 完成
 
-交付：PWA（離線、可安裝、出現在分享選單）、批次處理、Firefox 版、自動上架商店。
+交付：PWA（離線、可安裝、出現在分享選單）、批次處理、自動上架商店。
+（Firefox 版外掛已否決，見 [history/006](history/006-否決Firefox版外掛.md)；網頁版仍支援 Firefox。）
 前置條件：階段 2
 
 **成功標準：**
 - [ ] 斷網時仍能完整使用網頁版
 - [ ] 一次處理多張圖並打包下載
-- [ ] Firefox 版外掛通過同一套 E2E 測試
 
 ## 關鍵延伸（主題觸發必讀）
 
 | 觸發關鍵字 | MUST 讀 |
 |---|---|
+| Firefox、外掛支援的瀏覽器 | [`history/006-否決Firefox版外掛.md`](history/006-否決Firefox版外掛.md) |
 | UI 框架、React、Svelte | [`history/005-UI框架從Svelte5到React.md`](history/005-UI框架從Svelte5到React.md) |
 | 建置、CDN、部署、GitHub Actions | [`history/001-建置方式從只用CDN到打包加GitHub-Actions發佈.md`](history/001-建置方式從只用CDN到打包加GitHub-Actions發佈.md) |
 | 具體技術約束、門檻 | [`.specify/memory/constitution.md`](../.specify/memory/constitution.md) |
